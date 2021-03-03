@@ -17,18 +17,18 @@
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"zxylab.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
+    var CONFIG = {"hostname":"zxylab.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":"valine","storage":true,"lazyload":false,"nav":null,"activeClass":"valine"},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.json"};
   </script>
 
-  <meta name="description" content="2021&#x2F;3&#x2F;2使用Hexo+GitHubPages初步构建网站 2021&#x2F;3&#x2F;3替换网站域名为个人域名增加网站图标">
+  <meta name="description" content="2021&#x2F;3&#x2F;2使用Hexo+GitHubPages初步构建网站 2021&#x2F;3&#x2F;3替换网站域名为个人域名增加网站图标增加标签 分类 归档增加评论功能">
 <meta property="og:type" content="article">
 <meta property="og:title" content="网站建设日志">
 <meta property="og:url" content="https://zxylab.com/2021/03/02/Website-construction-log/index.html">
 <meta property="og:site_name" content="zxylab">
-<meta property="og:description" content="2021&#x2F;3&#x2F;2使用Hexo+GitHubPages初步构建网站 2021&#x2F;3&#x2F;3替换网站域名为个人域名增加网站图标">
+<meta property="og:description" content="2021&#x2F;3&#x2F;2使用Hexo+GitHubPages初步构建网站 2021&#x2F;3&#x2F;3替换网站域名为个人域名增加网站图标增加标签 分类 归档增加评论功能">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2021-03-02T11:08:51.000Z">
-<meta property="article:modified_time" content="2021-03-03T11:48:37.029Z">
+<meta property="article:modified_time" content="2021-03-03T12:51:53.131Z">
 <meta property="article:author" content="Zhu Xiangyu">
 <meta property="article:tag" content="日志">
 <meta name="twitter:card" content="summary">
@@ -219,7 +219,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-03 19:48:37" itemprop="dateModified" datetime="2021-03-03T19:48:37+08:00">2021-03-03</time>
+                <time title="修改时间：2021-03-03 20:51:53" itemprop="dateModified" datetime="2021-03-03T20:51:53+08:00">2021-03-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -232,6 +232,20 @@
             </span>
 
           
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="far fa-comment"></i>
+      </span>
+      <span class="post-meta-item-text">Valine：</span>
+    
+    <a title="valine" href="/2021/03/02/Website-construction-log/#valine-comments" itemprop="discussionUrl">
+      <span class="post-comments-count valine-comment-count" data-xid="/2021/03/02/Website-construction-log/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  
 
         </div>
       </header>
@@ -243,7 +257,7 @@
 
       
         <h2 id="2021-3-2"><a href="#2021-3-2" class="headerlink" title="2021/3/2"></a>2021/3/2</h2><p>使用Hexo+GitHubPages初步构建网站</p>
-<h2 id="2021-3-3"><a href="#2021-3-3" class="headerlink" title="2021/3/3"></a>2021/3/3</h2><p>替换网站域名为个人域名<br>增加网站图标</p>
+<h2 id="2021-3-3"><a href="#2021-3-3" class="headerlink" title="2021/3/3"></a>2021/3/3</h2><p>替换网站域名为个人域名<br>增加网站图标<br>增加标签 分类 归档<br>增加评论功能</p>
 
     </div>
 
@@ -278,6 +292,7 @@
 
           </div>
           
+    <div class="comments" id="valine-comments"></div>
 
 <script>
   window.addEventListener('tabs:register', () => {
@@ -443,6 +458,35 @@
   
 
   
+
+
+<script>
+NexT.utils.loadComments(document.querySelector('#valine-comments'), () => {
+  NexT.utils.getScript('//unpkg.com/valine/dist/Valine.min.js', () => {
+    var GUEST = ['nick', 'mail', 'link'];
+    var guest = 'nick,mail,link';
+    guest = guest.split(',').filter(item => {
+      return GUEST.includes(item);
+    });
+    new Valine({
+      el         : '#valine-comments',
+      verify     : false,
+      notify     : false,
+      appId      : '4Hz15uMPOqinTJSKKMkrYkNr-gzGzoHsz',
+      appKey     : 'h0tf7o5Bbr9CS60kvbegLPq4',
+      placeholder: "欢迎留言",
+      avatar     : 'mm',
+      meta       : guest,
+      pageSize   : '10' || 10,
+      visitor    : false,
+      lang       : 'zh-cn' || 'zh-cn',
+      path       : location.pathname,
+      recordIP   : false,
+      serverURLs : ''
+    });
+  }, window.Valine);
+});
+</script>
 
 </body>
 </html>
