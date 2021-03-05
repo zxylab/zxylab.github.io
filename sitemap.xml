@@ -2,14 +2,14 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://zxylab.com/project/image-stiching/</loc>
+    <loc>https://zxylab.com/website-construction/Website-construction-log/</loc>
     
     <lastmod>2021-03-05</lastmod>
     
   </url>
   
   <url>
-    <loc>https://zxylab.com/website-construction/Website-construction-log/</loc>
+    <loc>https://zxylab.com/project/image-stiching/</loc>
     
     <lastmod>2021-03-05</lastmod>
     
@@ -46,14 +46,14 @@
 
   
   <url>
-    <loc>https://zxylab.com/tags/image-processing/</loc>
+    <loc>https://zxylab.com/tags/log/</loc>
     <lastmod>2021-03-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://zxylab.com/tags/log/</loc>
+    <loc>https://zxylab.com/tags/image-processing/</loc>
     <lastmod>2021-03-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -69,14 +69,14 @@
 
   
   <url>
-    <loc>https://zxylab.com/categories/project/</loc>
+    <loc>https://zxylab.com/categories/website-construction/</loc>
     <lastmod>2021-03-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://zxylab.com/categories/website-construction/</loc>
+    <loc>https://zxylab.com/categories/project/</loc>
     <lastmod>2021-03-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
