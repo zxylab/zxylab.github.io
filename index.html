@@ -220,7 +220,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-07 15:59:19" itemprop="dateModified" datetime="2021-03-07T15:59:19+08:00">2021-03-07</time>
+                <time title="修改时间：2021-03-07 16:28:09" itemprop="dateModified" datetime="2021-03-07T16:28:09+08:00">2021-03-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -257,10 +257,23 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>使用FAST/SURF/SIFT算法实现多张图片拼接</p>
+          <h2 id="整体思路"><a href="#整体思路" class="headerlink" title="整体思路"></a>整体思路</h2><p>效果图如下：<br>输入每张重叠超过50%的图片<br><img src="https://i.loli.net/2021/03/05/xgNFt3W2XdyozIi.png" alt="输入图片.png"><br>输出拼接后的图片<br><img src="https://i.loli.net/2021/03/05/oA3pb8Qe2RlwJUK.png" alt="输出图片.png">  </p>
+<hr>
+<p>首先，对于输入图片，获取图片的数量，宽，高等信息；其次，使用角点检测算法对图像提取特征点；在排除异常特征点后求解变换矩阵；最后进行图像融合并输出。以下是整个图像拼接的流程图：<br><img src="https://i.loli.net/2021/03/05/Dx274iNCLKbPBGY.png" alt="流程图.png">   </p>
+<h3 id="FAST算法提取特征点"><a href="#FAST算法提取特征点" class="headerlink" title="FAST算法提取特征点"></a>FAST算法提取特征点</h3><p>FAST的提出者Rosten等将FAST角点定义为：若某像素与其周围邻域内足够多的像素点相差较大，则该像素可能是角点。</p>
+<p>核心思想如下：该算法的基本原理是使用圆周长为16个像素点来判定其圆心像素P是否为角点。如下图所示，在圆周上按顺时针方向从1到16的顺序对圆周像素点进行编号。如果在圆周上有N个连续的像素的亮度都比圆心像素的亮度Ip加上阈值t还要亮，或者比圆心像素的亮度减去阈值还要暗，则圆心像素被称为角点。<br><img src="https://i.loli.net/2021/03/05/wRe6TDOFVNQtqkg.png" alt="圆周上的16个像素.png">  </p>
+<hr>
+<p>详细计算方法如下：</p>
+<ul>
+<li>选择某个像素p其像素值为$I_p$以p为圆心，半径为三个像素确定一个圆，圆上有$16$个像素点记作$p_1,p_2,p_3…p_{16}$ </li>
+<li>确定一个阈值记作$t$  </li>
+<li>让圆上的$n$个连续的像素的像素值与$p$的像素值做差，若这些差值的绝对值都比$I_\sigma+t$或者都比$I_\sigma-t$小,则像素为角点。令$n=12$  </li>
+<li>分别计算$p_1,p_2,p_3,p_4$四个点像素值与$I_\sigma$的差值，若差值的绝对值都比$I_\sigma+t$大或都比$I_\sigma-t$小，则进入下一步判断，否则 点被丢弃。  </li>
+<li>对圆上16个像素点的像素值分别与$I_\sigma$做差，若有n个像素点的差值的绝对值都比$I_\sigma+t$大或都比$I_\sigma-t$小，则$p$点为角点。</li>
+</ul>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/project/feature-extraction-based-image-stiching/">
+              <a class="btn" href="/project/feature-extraction-based-image-stiching/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -315,7 +328,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-07 15:59:54" itemprop="dateModified" datetime="2021-03-07T15:59:54+08:00">2021-03-07</time>
+                <time title="修改时间：2021-03-07 16:28:15" itemprop="dateModified" datetime="2021-03-07T16:28:15+08:00">2021-03-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -352,10 +365,12 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>测试页面</p>
+          <h1 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h1><h1 id="Markdown-syntax-guide"><a href="#Markdown-syntax-guide" class="headerlink" title="Markdown syntax guide"></a>Markdown syntax guide</h1><h2 id="Headers"><a href="#Headers" class="headerlink" title="Headers"></a>Headers</h2><h1 id="This-is-a-Heading-h1"><a href="#This-is-a-Heading-h1" class="headerlink" title="This is a Heading h1"></a>This is a Heading h1</h1><h2 id="This-is-a-Heading-h2"><a href="#This-is-a-Heading-h2" class="headerlink" title="This is a Heading h2"></a>This is a Heading h2</h2><h6 id="This-is-a-Heading-h6"><a href="#This-is-a-Heading-h6" class="headerlink" title="This is a Heading h6"></a>This is a Heading h6</h6><h2 id="Emphasis"><a href="#Emphasis" class="headerlink" title="Emphasis"></a>Emphasis</h2><p><em>This text will be italic</em><br>_This will also be italic_</p>
+<p><strong>This text will be bold</strong><br><strong>This will also be bold</strong></p>
+<p>_You <strong>can</strong> combine them_</p>
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/test/test/">
+              <a class="btn" href="/test/test/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
@@ -410,7 +425,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2021-03-07 15:58:29" itemprop="dateModified" datetime="2021-03-07T15:58:29+08:00">2021-03-07</time>
+                <time title="修改时间：2021-03-07 16:28:21" itemprop="dateModified" datetime="2021-03-07T16:28:21+08:00">2021-03-07</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -447,10 +462,14 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>记录网站建设历程</p>
+          <h4 id="2021-3-2"><a href="#2021-3-2" class="headerlink" title="2021/3/2"></a>2021/3/2</h4><p>使用Hexo+GitHubPages初步构建网站  </p>
+<h4 id="2021-3-3"><a href="#2021-3-3" class="headerlink" title="2021/3/3"></a>2021/3/3</h4><p>替换网站域名为个人域名<br>增加网站图标<br>增加标签 分类 归档<br>增加评论功能  </p>
+<h4 id="2021-3-4"><a href="#2021-3-4" class="headerlink" title="2021/3/4"></a>2021/3/4</h4><p>添加访客统计</p>
+<h4 id="2021-3-5"><a href="#2021-3-5" class="headerlink" title="2021/3/5"></a>2021/3/5</h4><p>增加暗色模式<br>更换Hexo的markdown渲染引擎为hexo-renderer-kramed，解决latex公式无法渲染的问题 <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/d95a4795f3a8">hexo下LaTeX无法显示的解决方案</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/Awt_FuDongLai/article/details/107466848">增加代码块一键复制功能</a></p>
+
           <!--noindex-->
             <div class="post-button">
-              <a class="btn" href="/website-construction/Website-construction-log/">
+              <a class="btn" href="/website-construction/Website-construction-log/#more" rel="contents">
                 阅读全文 &raquo;
               </a>
             </div>
