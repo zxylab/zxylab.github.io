@@ -67,13 +67,6 @@
   </url>
   
   <url>
-    <loc>https://zxylab.com/tags/Log/</loc>
-    <lastmod>2021-03-09</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <url>
     <loc>https://zxylab.com/tags/Matlab/</loc>
     <lastmod>2021-03-09</lastmod>
     <changefreq>daily</changefreq>
@@ -82,6 +75,13 @@
   
   <url>
     <loc>https://zxylab.com/tags/Image-Processing/</loc>
+    <lastmod>2021-03-09</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
+    <loc>https://zxylab.com/tags/Log/</loc>
     <lastmod>2021-03-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
@@ -104,14 +104,14 @@
   </url>
   
   <url>
-    <loc>https://zxylab.com/categories/essay/</loc>
+    <loc>https://zxylab.com/categories/project/</loc>
     <lastmod>2021-03-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
   </url>
   
   <url>
-    <loc>https://zxylab.com/categories/project/</loc>
+    <loc>https://zxylab.com/categories/essay/</loc>
     <lastmod>2021-03-09</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.6</priority>
