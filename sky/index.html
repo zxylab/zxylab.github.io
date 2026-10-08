@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#080f22">
+  <meta name="description" content="一片可以发会儿呆的星空。移动鼠标，看看星星如何回应。">
+  <title>发会儿呆 · 一小块空地</title>
+  <style>
+    :root{color-scheme:dark;--white:#e6eaf6;--soft:#a5b3ce;--line:rgba(184,201,241,.19)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0}
+    body{background:radial-gradient(ellipse at 50% 40%,#131f42 0%,#0b1530 43%,#060b19 100%);color:var(--white);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;overflow:hidden}
+    canvas{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+    .haze{position:fixed;inset:0;pointer-events:none;background:radial-gradient(ellipse at 72% 23%,rgba(64,91,157,.11),transparent 53%),radial-gradient(ellipse at 14% 80%,rgba(51,108,140,.06),transparent 48%)}
+    .layout{position:relative;z-index:2;min-height:100svh;display:flex;flex-direction:column;pointer-events:none;padding:clamp(22px,4vw,44px) clamp(24px,6vw,90px)}
+    .layout a,.layout button{pointer-events:auto}
+    header,footer{display:flex;align-items:center;justify-content:space-between;gap:18px}
+    a{color:inherit;text-decoration:none}
+    .back{font-size:13px;letter-spacing:.045em;color:var(--soft);border-bottom:1px solid transparent;padding:5px 0}
+    .back:hover,.back:focus-visible{color:var(--white);border-color:var(--white)}
+    .tag{font-size:11px;letter-spacing:.16em;color:#8290b0}
+    main{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;margin-top:-4vh}
+    .kicker{font-size:11px;letter-spacing:.24em;color:#93a4cb;margin:0 0 20px}
+    h1{font-size:clamp(32px,5vw,64px);line-height:1.25;letter-spacing:-.065em;font-weight:490;margin:0 0 22px;text-shadow:0 1px 26px rgba(6,10,30,.65)}
+    .desc{font-size:14px;line-height:2;color:var(--soft);margin:0}
+    footer{align-items:flex-end}
+    .tiny{font-size:11px;line-height:1.8;color:#7f90b0}
+    .motion{color:#9caccd;border:1px solid var(--line);border-radius:20px;background:rgba(5,13,30,.34);font:inherit;font-size:11px;padding:8px 13px;cursor:pointer}
+    .motion:hover{background:rgba(57,81,134,.25)}
+    .radar{position:fixed;z-index:3;right:clamp(21px,6vw,95px);bottom:clamp(78px,13vh,140px);display:flex;gap:12px;align-items:center;color:#d8e8e0;filter:drop-shadow(0 8px 28px rgba(0,0,0,.2))}
+    .radar .sticker{width:76px;height:81px;transition:transform .25s ease}
+    .radar:hover .sticker,.radar:focus-visible .sticker{transform:rotate(-7deg) translateY(-5px)}
+    .radar .label{font-size:12px;letter-spacing:.04em;color:#a8c2bb;padding:8px 0;border-bottom:1px solid rgba(150,208,184,.4)}
+    .radar:focus-visible,.motion:focus-visible{outline:2px solid #b2d6dd;outline-offset:6px}
+    .sr-only{position:absolute;left:-9999px}
+    @media(max-width:620px){
+      .layout{padding:24px 7vw}
+      main{justify-content:flex-start;padding-top:23vh;margin-top:0}
+      h1{font-size:39px}
+      .radar{bottom:100px;right:7vw}
+      .radar .sticker{width:66px;height:70px}
+      .radar .label{font-size:11px}
+    }
+    @media(prefers-reduced-motion:reduce){.radar .sticker{transition:none}}
+  </style>
+</head>
+<body>
+  <canvas id="stars" aria-label="一片缓慢闪烁、会随指针轻轻移动的星空" role="img"></canvas>
+  <div class="haze"></div>
+  <div class="layout">
+    <header><a class="back" href="/">← 回到空地</a><span class="tag">A LITTLE SPACE</span></header>
+    <main>
+      <p class="kicker">NOTHING TO FINISH HERE.</p>
+      <h1>发会儿呆。</h1>
+      <p class="desc">这里没有要完成的事。<br>移动一下鼠标，星星会有一点回应。</p>
+    </main>
+    <footer><span class="tiny">慢慢来。<br>触摸屏也可以轻轻划动。</span><button class="motion" id="motion" type="button" aria-pressed="false">暂停星光</button></footer>
+  </div>
+  <a class="radar" href="/radar/" aria-label="进入雷达小站">
+    <svg class="sticker" viewBox="0 0 100 110" aria-hidden="true">
+      <path d="M31 93 25 106M70 93 78 106" stroke="#9caeb3" stroke-width="6" stroke-linecap="round"/>
+      <path d="M14 42Q14 19 45 17L53 8 72 13 68 22Q87 31 86 53V75Q85 96 49 96Q13 95 14 75Z" fill="#d3e3da" stroke="#142d35" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="50" cy="56" r="29" fill="#153f48" stroke="#142d35" stroke-width="3"/>
+      <circle cx="50" cy="56" r="20" fill="none" stroke="#8dd9ac" stroke-opacity=".24" stroke-width="1.5"/>
+      <path d="M50 56 50 27A29 29 0 0 1 76 68Z" fill="#a8f4b6" fill-opacity=".17"/>
+      <path d="M50 56 65 31" stroke="#a8f4b6" stroke-width="2.6" stroke-linecap="round"/>
+      <circle cx="39" cy="48" r="3.6" fill="#b5f5c0"/>
+      <circle cx="64" cy="62" r="2.5" fill="#b5f5c0"/>
+      <circle cx="50" cy="56" r="2" fill="#d9fff1"/>
+      <path d="M34 84q4 4 8 0m17 0q4 4 8 0" fill="none" stroke="#243944" stroke-width="2.3" stroke-linecap="round"/>
+    </svg>
+    <span class="label">雷达小站 ↗</span>
+  </a>
+  <script>
+    (function(){
+      "use strict";
+      const canvas=document.getElementById("stars"),ctx=canvas.getContext("2d",{alpha:true});
+      if(!ctx)return;
+      const reduce=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const motion=document.getElementById("motion");
+      let w=0,h=0,dpr=1,stars=[],frame=0,paused=reduce,raf=0;
+      let cursor={x:0,y:0,active:false};
+      function random(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+      function resize(){
+        w=window.innerWidth;h=window.innerHeight;dpr=Math.min(window.devicePixelRatio||1,2);
+        canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+        ctx.setTransform(dpr,0,0,dpr,0,0);
+        const rnd=random(73812),n=Math.max(75,Math.min(265,Math.floor(w*h/5900)));
+        stars=Array.from({length:n},function(){
+          return{x:rnd()*w,y:rnd()*h,r:.45+rnd()*1.45,z:.25+rnd()*.9,
+            phase:rnd()*Math.PI*2,rate:.25+rnd()*.75,ox:0,oy:0};
+        });
+        draw();
+      }
+      function draw(){
+        ctx.clearRect(0,0,w,h);
+        const near=[],time=frame/60;
+        for(let i=0;i<stars.length;i++){
+          const s=stars[i],bx=s.x+Math.sin(time*.18+s.phase)*4*s.z,by=s.y+Math.cos(time*.14+s.phase)*3*s.z;
+          let tx=0,ty=0;
+          if(cursor.active){
+            const dx=cursor.x-bx,dy=cursor.y-by,dist=Math.hypot(dx,dy),radius=160+60*s.z;
+            if(dist<radius){const strength=Math.pow(1-dist/radius,2);tx=dx*.23*strength;ty=dy*.23*strength;}
+            tx+=(cursor.x-w/2)/Math.max(w,1)*14*s.z;
+            ty+=(cursor.y-h/2)/Math.max(h,1)*11*s.z;
+          }
+          s.ox+=(tx-s.ox)*.065;s.oy+=(ty-s.oy)*.065;
+          const x=bx+s.ox,y=by+s.oy,twinkle=.76+.24*Math.sin(time*s.rate+s.phase),a=(.27+.53*s.z)*twinkle;
+          ctx.beginPath();ctx.arc(x,y,s.r*s.z+.35,0,Math.PI*2);
+          ctx.fillStyle="rgba(219,234,255,"+a.toFixed(3)+")";ctx.fill();
+          if(s.z>.92){ctx.beginPath();ctx.arc(x,y,(s.r+1.6)*s.z,0,Math.PI*2);ctx.fillStyle="rgba(102,167,255,"+(a*.08).toFixed(3)+")";ctx.fill();}
+          if(cursor.active&&Math.hypot(cursor.x-x,cursor.y-y)<128&&near.length<17)near.push({x:x,y:y});
+        }
+        if(near.length>1){
+          ctx.lineWidth=.6;
+          for(let i=0;i<near.length;i++)for(let j=i+1;j<near.length;j++){
+            const a=near[i],b=near[j],dist=Math.hypot(a.x-b.x,a.y-b.y);
+            if(dist<77){ctx.strokeStyle="rgba(146,189,245,"+(.16*(1-dist/77)).toFixed(3)+")";ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();}
+          }
+        }
+      }
+      function animate(){
+        if(paused||document.hidden){raf=0;return;}
+        frame++;draw();raf=requestAnimationFrame(animate);
+      }
+      function start(){if(!raf&&!paused&&!document.hidden)raf=requestAnimationFrame(animate);}
+      function move(e){cursor.x=e.clientX;cursor.y=e.clientY;cursor.active=true;if(paused)draw();}
+      canvas.addEventListener("pointermove",move,{passive:true});
+      canvas.addEventListener("pointerdown",move,{passive:true});
+      canvas.addEventListener("pointerleave",function(){cursor.active=false;},{passive:true});
+      canvas.addEventListener("pointerup",function(e){if(e.pointerType!=="mouse")cursor.active=false;},{passive:true});
+      motion.addEventListener("click",function(){
+        paused=!paused;motion.setAttribute("aria-pressed",String(paused));
+        motion.textContent=paused?"继续星光":"暂停星光";if(!paused)start();else if(raf){cancelAnimationFrame(raf);raf=0;}
+      });
+      window.addEventListener("resize",resize,{passive:true});
+      document.addEventListener("visibilitychange",start);
+      if(reduce){motion.textContent="继续星光";motion.setAttribute("aria-pressed","true");}
+      resize();start();
+    })();
+  </script>
+</body>
+</html>
