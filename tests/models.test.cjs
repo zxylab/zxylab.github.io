@@ -1,0 +1,16 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const M = require('../tools/models.js');
+const near = (a,b,t=1e-8) => assert.ok(Math.abs(a-b)<t, `${a} != ${b}`);
+const base = {f:1e9,r:50e3,pt:1e6,gt:20,gr:20,sigma:1,tau:.2e-6,b:5e6,t:290,nf:0,loss:0,processing:0};
+test('FSPL independent GHz/km example and doubling',()=>{near(M.fspl(10e9,50e3),146.4271833086,1e-7);near(M.fspl(10e9,100e3)-M.fspl(10e9,50e3),6.0205999133);});
+test('kTB reference and non-reference antenna temperature',()=>{near(M.noise(1,290,0).dbm,-173.9751871942,1e-7);near(M.noise(1e6,290,3).dbm,-110.9751871942,1e-7);near(M.noise(1,100,10).ts,2710);});
+test('public MathWorks single-pulse reference 5.5868 dB',()=>{near(M.radar(base).single,5.5868,5e-5);});
+test('radar R^-4, losses, pulse energy; bandwidth gain not counted twice',()=>{const x=M.radar(base);near(M.radar({...base,r:base.r*2}).single-x.single,-12.0411998266);near(M.radar({...base,processing:3,loss:2}).single-x.single,-5);near(M.radar({...base,b:base.b*100}).single,x.single);near(M.radar({...base,tau:base.tau*2}).single-x.single,3.0102999566);near(x.pre+x.rangeGain,x.single);});
+test('SAR N=1 reduces to single pulse; N gain is 10logN',()=>{near(M.sar({...base,n:1,target:'point'}).image,M.radar(base).single);near(M.sar({...base,n:100,target:'point'}).image-M.radar(base).single,20);});
+test('distributed SAR uses ground area; NESZ corresponds to image SNR=0',()=>{const p={...base,n:128,target:'distributed',sigma0:-10,az:3,angle:30};const x=M.sar(p);near(x.area, M.C/(2*p.b*.5)*3);near(x.sigma,x.area*.1);near(M.sar({...p,sigma0:x.nesz}).image,0);near(M.sar({...p,az:6}).image-x.image,3.0102999566);});
+test('range and Doppler round trips, zero and negative',()=>{near(M.rangeTime(M.rangeTime(50000,'range'),'time'),50000);near(M.rangeTime(0,'range'),0);for(const v of [-30,0,30])near(M.doppler(M.doppler(v,10e9,'velocity'),10e9,'doppler'),v);});
+test('absolute power and relative amplitude reference values',()=>{near(M.power(30,'dBm').W,1);near(M.power(1,'W').dBm,30);near(M.power(-30,'dBW').mW,1);near(M.ratio(100,'power').dB,20);near(M.ratio(10,'amplitude').power,100);near(M.ratio(-20,'dB').amplitude,.1);});
+test('invalid and overflowing values cannot produce plausible stale results',()=>{for(const call of [()=>M.fspl(0,1),()=>M.noise(0,290,0),()=>M.noise(1,290,-1),()=>M.sar({...base,n:1.5}),()=>M.sar({...base,n:1,target:'distributed',az:1,angle:90,sigma0:0}),()=>M.power(0,'W'),()=>M.power(4000,'dBm'),()=>M.ratio(-1,'amplitude')])assert.throws(call);});
+test('Base64 UTF-8, multiline, whitespace, empty and hostile text round trips',()=>{for(const s of ['你好，世界！','第一行\n第二行','😀 <script>alert(1)</script>','', '\uFEFF开头 BOM'])assert.equal(M.base64(M.base64(s,'encode'),'decode'),s);assert.equal(M.base64(' YW\nJj ', 'decode'),'abc');assert.equal(M.base64('foobar','encode'),'Zm9vYmFy');});
+test('Base64 rejects invalid syntax, pad bits and binary UTF-8',()=>{for(const s of ['***','YQ','YR==','_w==','/w==','===='])assert.throws(()=>M.base64(s,'decode'));});
