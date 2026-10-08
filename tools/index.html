@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f3f0e8">
+  <meta name="description" content="随手算一算：自由空间路径损耗、单脉冲与 SAR 雷达方程、热噪声、距离多普勒、dB 单位换算和 Base64 编解码。">
+  <title>小工具 · 一小块空地</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./models.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#calculator">跳到计算器</a>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/tools/"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="4" width="40" height="40" rx="13" fill="#f4d7ba" stroke="#8c654b" stroke-width="1.5"/><path d="M32 10a10 10 0 0 0-12 13L10 33a4 4 0 0 0 6 6l10-10a10 10 0 0 0 13-12l-7 7-7-7Z" fill="#fcfaf2" stroke="#655e50" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="35" r="1.6" fill="#d86943"/><path d="m31 34 2 2m4-5 2 1" stroke="#ad7851" stroke-width="1.5" stroke-linecap="round"/></svg><span>小工具</span></a>
+      <nav class="links" aria-label="其他地方"><a href="/">回到空地</a><a href="/radar/">雷达小站</a><a href="/sky/">发会儿呆 ↗</a></nav>
+    </header>
+    <section class="hero" aria-labelledby="title">
+      <div><span class="eyebrow">A FEW HANDY THINGS.</span><h1 id="title">随手算一算。</h1><p>常用的小计算，放在顺手的地方。<br>改个数字，结果就出来了。</p></div>
+      <div class="hero-art"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="4" y="4" width="40" height="40" rx="13" fill="#f4d7ba" stroke="#8c654b" stroke-width="1.5"/><path d="M32 10a10 10 0 0 0-12 13L10 33a4 4 0 0 0 6 6l10-10a10 10 0 0 0 13-12l-7 7-7-7Z" fill="#fcfaf2" stroke="#655e50" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="35" r="1.6" fill="#d86943"/><path d="m31 34 2 2m4-5 2 1" stroke="#ad7851" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+    </section>
+    <noscript>这些工具需要启用 JavaScript，所有计算都在浏览器本地完成。公式与建模说明可查看 <a href="https://github.com/zxylab/zxylab.github.io/blob/main/tools/README.md">使用说明</a>。</noscript>
+    <main class="workspace" id="calculator" tabindex="-1">
+      <div class="tool-nav" role="tablist" aria-label="选择小工具"></div>
+      <div id="panels"></div>
+    </main>
+    <footer><span>不急着把空白填满。</span><span>纯本地计算 · 无需账号 · 不上传参数</span></footer>
+  </div>
+</body>
+</html>
