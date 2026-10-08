@@ -22,6 +22,16 @@ layout: null
     h1 { margin:0; font-size:clamp(42px,6.2vw,84px); font-weight:550; line-height:1.24; letter-spacing:-.055em; }
     .intro { margin:30px 0 0; font-size:15px; line-height:1.9; color:var(--muted); }
     .pebble { display:grid; place-items:center; }
+    .pebble-button { width:min(100%,390px); padding:0; border:0; background:none; border-radius:25px; display:block; }
+    .pebble-button:hover { background:none; }
+    .entries { display:flex; align-items:center; flex-wrap:wrap; gap:12px; }
+    .pill-link { display:inline-block; border:1px solid #b8bbae; border-radius:999px; padding:11px 17px; color:var(--ink); background:transparent; font:inherit; text-decoration:none; transition:background .2s; }
+    .pill-link:hover { background:#e7e6da; }
+    .pill-link:focus-visible, .radar-entry:focus-visible { outline:2px solid var(--accent); outline-offset:5px; }
+    .radar-entry { display:flex; align-items:center; gap:7px; text-decoration:none; font-size:12px; color:var(--muted); padding:3px 4px; }
+    .radar-entry:hover { color:var(--ink); }
+    .radar-entry svg { width:37px; height:37px; transition:transform .25s ease; }
+    .radar-entry:hover svg { transform:rotate(-10deg); }
     svg { width:min(100%,390px); height:auto; overflow:visible; }
     .stone { transform-origin:200px 175px; transition:transform .5s ease; }
     body.resting .stone { transform:rotate(-9deg) translateY(7px); }
@@ -38,10 +48,13 @@ layout: null
       main { grid-template-columns:1fr; padding:65px 0 45px; gap:34px; }
       .eyebrow { margin-bottom:20px; }
       .intro { margin-top:22px; }
+      .pebble-button { width:230px; }
       svg { width:230px; }
-      footer { align-items:center; }
+      .radar-entry svg { width:34px; height:34px; }
+      footer { align-items:center; flex-wrap:wrap; }
+      .entries { gap:9px; }
     }
-    @media (prefers-reduced-motion:reduce) { .stone, button { transition:none; } }
+    @media (prefers-reduced-motion:reduce) { .stone, button, .pill-link, .radar-entry svg { transition:none; } }
   </style>
 </head>
 <body>
@@ -54,6 +67,7 @@ layout: null
         <p class="intro">这里暂时没什么大事。<br>有趣的东西，以后再放。</p>
       </section>
       <div class="pebble">
+        <button class="pebble-button" id="pebble" type="button" aria-label="让小石头休息" aria-pressed="false" title="轻轻点一下">
         <svg viewBox="0 0 400 330" role="img" aria-label="一颗悠闲的橙色小石头">
           <ellipse cx="204" cy="281" rx="105" ry="9" fill="#deded1"/>
           <g class="stone">
@@ -63,17 +77,33 @@ layout: null
             <path d="M188 189q10 8 20 0" fill="none" stroke="#292c27" stroke-width="3" stroke-linecap="round"/>
           </g>
         </svg>
+        </button>
       </div>
     </main>
-    <footer><span>不急着把空白填满。</span><button id="pause" type="button" aria-pressed="false" hidden>发会儿呆 ↗</button></footer>
+    <footer>
+      <span>不急着把空白填满。</span>
+      <nav class="entries" aria-label="看看其他地方">
+        <a class="radar-entry" href="/radar/" aria-label="雷达小站">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <rect x="4" y="4" width="40" height="40" rx="13" fill="#c9e0d2" stroke="#526b63" stroke-width="1.5"/>
+            <circle cx="24" cy="23" r="14" fill="#1c5551"/>
+            <path d="M24 23V9A14 14 0 0 1 37 28Z" fill="#a6e6b4" fill-opacity=".32"/>
+            <path d="M24 23 31 11" stroke="#b6f7bf" stroke-width="1.5"/>
+            <circle cx="18" cy="18" r="2" fill="#b6f7bf"/><circle cx="30" cy="28" r="1.8" fill="#b6f7bf"/>
+            <path d="M16 39q3 3 6 0m5 0q3 3 6 0" fill="none" stroke="#53685f" stroke-width="1.4" stroke-linecap="round"/>
+          </svg>
+          <span>雷达小站</span>
+        </a>
+        <a class="pill-link" href="/sky/">发会儿呆 ↗</a>
+      </nav>
+    </footer>
   </div>
   <script>
-    const pause = document.getElementById('pause');
-    pause.hidden = false;
-    pause.addEventListener('click', () => {
+    const pebble = document.getElementById('pebble');
+    pebble.addEventListener('click', () => {
       const resting = document.body.classList.toggle('resting');
-      pause.setAttribute('aria-pressed', String(resting));
-      pause.textContent = resting ? '好，慢慢来 ↙' : '发会儿呆 ↗';
+      pebble.setAttribute('aria-pressed', String(resting));
+      pebble.setAttribute('aria-label', resting ? '叫醒小石头' : '让小石头休息');
     });
   </script>
 </body>
