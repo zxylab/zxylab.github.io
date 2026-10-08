@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f4f1e9">
+  <meta name="description" content="雷达小站：用三个可以动手的小实验，看懂测距测速、脉冲压缩和雷达干扰。">
+  <title>雷达小站 · 一小块空地</title>
+  <style>
+    :root{color-scheme:light;--paper:#f4f1e9;--card:#fffdf8;--ink:#26312e;--muted:#66716d;--line:#d9ddd5;--green:#367c70;--orange:#cc7151}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+    a{color:inherit;text-decoration:none}
+    button,input{font:inherit}
+    button:focus-visible,a:focus-visible,input:focus-visible{outline:3px solid #65aa9b;outline-offset:3px}
+    .shell{max-width:1050px;padding:26px 28px 78px;margin:auto}
+    header{display:flex;justify-content:space-between;align-items:center;gap:15px;padding:7px 0 24px;border-bottom:1px solid var(--line)}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:650;letter-spacing:.01em}
+    .brand svg{width:39px;height:44px}
+    .minor-nav{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+    .minor-nav a:hover{color:var(--green)}
+    .hero{padding:66px 0 48px;display:flex;justify-content:space-between;align-items:center;gap:28px}
+    .eyebrow{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:.16em;color:var(--green)}
+    h1{font-size:clamp(34px,5.1vw,60px);font-weight:580;letter-spacing:-.065em;line-height:1.3;margin:17px 0 20px}
+    .hero p{color:var(--muted);font-size:15px;line-height:2;max-width:550px;margin:0}
+    .hero-art{flex:0 0 195px;transform:rotate(7deg)}
+    .hero-art svg{width:100%}
+    .quick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:58px}
+    .quick a{display:flex;gap:15px;align-items:flex-start;min-height:100px;padding:19px 18px;background:#ecefe6;border:1px solid #dce2d7;border-radius:16px;transition:transform .2s,border-color .2s}
+    .quick a:hover{transform:translateY(-3px);border-color:var(--green)}
+    .number{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--green)}
+    .quick strong{display:block;font-size:15px;font-weight:600;margin:0 0 8px}
+    .quick small{display:block;color:var(--muted);font-size:12px;line-height:1.5}
+    .lesson{background:var(--card);border:1px solid #e2e4db;border-radius:21px;padding:clamp(22px,4.5vw,45px);margin:0 0 30px;scroll-margin-top:28px;box-shadow:0 12px 44px rgba(54,65,48,.035)}
+    .lesson-top{display:flex;align-items:center;gap:12px;margin-bottom:20px}
+    .lesson-top .mark{font:12px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--green);padding:7px 9px;border:1px solid #c7dfd4;border-radius:8px}
+    .lesson-top span:last-child{font-size:12px;color:var(--muted)}
+    h2{font-size:clamp(23px,3vw,30px);font-weight:610;letter-spacing:-.04em;line-height:1.45;margin:0 0 12px}
+    .lead{font-size:14px;color:var(--muted);line-height:1.9;margin:0 0 29px;max-width:740px}
+    .control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-bottom:24px}
+    .control{border:1px solid var(--line);background:#fbfbf6;padding:17px 18px;border-radius:13px}
+    .control label{font-size:13px;font-weight:560;display:flex;justify-content:space-between;gap:8px}
+    .control output{font:600 13px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--green)}
+    input[type=range]{display:block;width:100%;margin:18px 0 5px;accent-color:var(--green);cursor:pointer}
+    .range-ends{display:flex;justify-content:space-between;font-size:11px;color:#7d8580}
+    .scene{background:#eef4ee;border:1px solid #dbe8df;border-radius:14px;padding:7px 12px;margin-bottom:18px}
+    .scene svg{display:block;width:100%;height:auto}
+    .graph{background:#fcfcf7;border:1px solid #e0e4dc;border-radius:13px;overflow:hidden;margin:12px 0}
+    .graph canvas{display:block;width:100%;height:185px}
+    .small-graph canvas{height:175px}
+    .graph-title{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);padding:15px 17px 0}
+    .values{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:18px 0}
+    .metric{background:#eff4ef;border-radius:12px;padding:18px}
+    .metric small{display:block;font-size:12px;color:var(--muted);margin-bottom:9px}
+    .metric strong{font:600 clamp(20px,3vw,29px) ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.04em;color:#2b685e}
+    .metric em{font-style:normal;font-size:12px;color:var(--muted);margin-left:8px}
+    .twoplots{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+    .explain{font-size:13px;line-height:1.95;color:#4e5a55;margin:18px 0 0}
+    .takeaway{background:#f3eee3;border-left:3px solid #d8a177;border-radius:0 12px 12px 0;padding:16px 19px;margin-top:25px;font-size:14px;line-height:1.9}
+    .takeaway strong{display:block;font-size:12px;color:#946146;letter-spacing:.04em;margin-bottom:4px}
+    .modes{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 21px}
+    .modes button{padding:10px 15px;border:1px solid var(--line);border-radius:999px;background:#fafbf6;color:#4f6058;font-size:12px;cursor:pointer}
+    .modes button[aria-pressed=true]{background:#2f6f64;color:white;border-color:#2f6f64}
+    .modes button:hover{border-color:#2f6f64}
+    .legend{display:flex;flex-wrap:wrap;gap:17px;font-size:11px;color:var(--muted);padding:0 4px;margin-top:11px}
+    .legend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+    .note{font-size:12px;line-height:1.9;color:#828981;margin:15px 0 0}
+    footer{border-top:1px solid var(--line);padding:27px 0;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+    @media(max-width:700px){
+      .shell{padding:19px 17px 45px}
+      .hero{padding:46px 0 30px;align-items:flex-start}
+      .hero-art{flex-basis:95px;margin-top:13px}
+      .quick{grid-template-columns:1fr;gap:9px;margin-bottom:32px}
+      .quick a{min-height:0;padding:14px 16px}
+      .control-grid,.twoplots{grid-template-columns:1fr}
+      .lesson{margin-bottom:17px}
+      .graph canvas{height:174px}
+      h1{font-size:36px}
+      .values{gap:8px}
+      .metric{padding:14px 12px}
+      .metric strong{font-size:22px}
+    }
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.quick a{transition:none}}
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/radar/" aria-label="雷达小站首页">
+        <svg viewBox="0 0 60 65" aria-hidden="true">
+          <path d="M16 54 12 63M43 54 48 63" stroke="#7b9290" stroke-width="4" stroke-linecap="round"/>
+          <rect x="5" y="7" width="50" height="51" rx="18" fill="#d1e1d8" stroke="#25443e" stroke-width="2.5"/>
+          <circle cx="30" cy="32" r="19" fill="#194c4c"/>
+          <path d="M30 32V13A19 19 0 0 1 48 38Z" fill="#7fd9ac" fill-opacity=".3"/>
+          <path d="M30 32 40 16" stroke="#9ce8ae" stroke-width="2"/>
+          <circle cx="24" cy="26" r="2.5" fill="#baf9b9"/>
+          <circle cx="39" cy="37" r="2" fill="#baf9b9"/>
+          <path d="M20 51q4 4 8 0m6 0q4 4 8 0" stroke="#385551" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+        雷达小站
+      </a>
+      <nav class="minor-nav" aria-label="返回导航"><a href="/sky/">去星空 ↗</a><a href="/">回到空地 ↗</a></nav>
+    </header>
+    <section class="hero">
+      <div>
+        <div class="eyebrow">THREE LITTLE EXPERIMENTS</div>
+        <h1>一点雷达，<br>慢慢看懂。</h1>
+        <p>不背一长串公式。先动动滑块，看现象发生什么，再解释为什么。这里暂时只有三个很小的实验。</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 220 220">
+          <ellipse cx="114" cy="204" rx="86" ry="9" fill="#e6e7d9"/>
+          <path d="M66 185 58 204M160 185 170 204" stroke="#7f9c94" stroke-width="11" stroke-linecap="round"/>
+          <path d="M31 101Q24 45 83 39L102 18 153 28 149 44Q189 62 190 112L188 156Q181 198 111 196Q34 192 31 150Z" fill="#c7ded0" stroke="#294c45" stroke-width="6" stroke-linejoin="round"/>
+          <circle cx="110" cy="118" r="63" fill="#255c58" stroke="#1e4945" stroke-width="5"/>
+          <circle cx="110" cy="118" r="43" stroke="#86bfa7" stroke-opacity=".35" stroke-width="3" fill="none"/>
+          <path d="M110 118V55A63 63 0 0 1 167 144Z" fill="#a5e5bc" fill-opacity=".24"/>
+          <path d="M110 118 141 63" stroke="#c9f9c7" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="85" cy="99" r="8" fill="#b6f2bc"/><circle cx="136" cy="136" r="6" fill="#b6f2bc"/>
+          <circle cx="110" cy="118" r="4" fill="#e7ffdf"/>
+          <path d="M87 179q6 7 12 0m24 0q6 7 12 0" fill="none" stroke="#355950" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </section>
+    <nav class="quick" aria-label="选择小实验">
+      <a href="#echo"><span class="number">01</span><span><strong>雷达如何知道距离和速度？</strong><small>让目标靠近或远离，再看回波</small></span></a>
+      <a href="#compression"><span class="number">02</span><span><strong>一张图看懂脉冲压缩</strong><small>带宽与脉宽，究竟谁管什么</small></span></a>
+      <a href="#jamming"><span class="number">03</span><span><strong>干扰出现时，会看到什么？</strong><small>观察底噪和假目标的变化</small></span></a>
+    </nav>
+    <main>
+      <section class="lesson" id="echo" aria-labelledby="title-echo">
+        <div class="lesson-top"><span class="mark">01</span><span>距离与径向速度</span></div>
+        <h2 id="title-echo">回波为什么会晚一点回来？</h2>
+        <p class="lead">雷达发出电磁波，波碰到目标后返回。目标越远，往返路程越长，回波到达得越晚。目标沿视线运动，还会改变回波的多普勒频移。</p>
+        <div class="control-grid">
+          <div class="control">
+            <label for="distance">目标距离 <output id="distanceValue" for="distance">65 km</output></label>
+            <input id="distance" type="range" min="10" max="140" step="5" value="65">
+            <div class="range-ends"><span>10 km</span><span>140 km</span></div>
+          </div>
+          <div class="control">
+            <label for="velocity">径向速度 <output id="velocityValue" for="velocity">+45 m/s</output></label>
+            <input id="velocity" type="range" min="-150" max="150" step="5" value="45">
+            <div class="range-ends"><span>−150 m/s（远离）</span><span>+150 m/s（靠近）</span></div>
+          </div>
+        </div>
+        <div class="scene">
+          <svg viewBox="0 0 800 200" role="img" aria-label="左侧雷达发射信号，目标位置随距离滑块移动">
+            <defs><marker id="tip" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0 0 6 3 0 6" fill="none" stroke="#d4815e" stroke-width="1.5"/></marker></defs>
+            <path d="M15 150H782" stroke="#ceded1" stroke-width="2"/>
+            <path d="M48 150v-39h60v39M67 111l11-24 12 24M78 87V65" fill="#8fb2a4" stroke="#2e615a" stroke-width="3" stroke-linejoin="round"/>
+            <path d="M78 65q32 0 45-23M78 65q17 0 23-12" fill="none" stroke="#76b6ae" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="78" cy="65" r="4" fill="#2e615a"/>
+            <line id="beam" x1="108" y1="90" x2="380" y2="90" stroke="#92b6aa" stroke-width="2" stroke-dasharray="8 7"/>
+            <g id="target" transform="translate(380 88)">
+              <ellipse cx="0" cy="56" rx="39" ry="5" fill="#cddbd0"/>
+              <path d="M-26 0q26-26 52 0l-8 15h-36Z" fill="#d4815e" stroke="#955d49" stroke-width="2"/>
+              <rect x="-17" y="11" width="34" height="21" rx="7" fill="#dba98b" stroke="#955d49" stroke-width="2"/>
+              <circle cx="-15" cy="37" r="7" fill="#355e5d"/><circle cx="15" cy="37" r="7" fill="#355e5d"/>
+            </g>
+            <text x="28" y="185" fill="#57756b" font-size="14">雷达</text>
+            <text id="targetLabel" x="380" y="37" text-anchor="middle" fill="#925f48" font-size="16">65 km</text>
+            <line id="speedArrow" x1="405" y1="56" x2="360" y2="56" stroke="#d4815e" stroke-width="2.5" marker-end="url(#tip)"/>
+            <text id="speedLabel" x="390" y="28" text-anchor="middle" fill="#997460" font-size="12">向雷达靠近</text>
+          </svg>
+        </div>
+        <div class="graph">
+          <div class="graph-title"><span>发射与回波出现的时刻</span><span>时间轴 / μs</span></div>
+          <canvas id="echoCanvas" aria-label="发射脉冲与接收回波的时间位置图" role="img"></canvas>
+        </div>
+        <div class="values">
+          <div class="metric"><small>往返时延 τ = 2R/c</small><strong id="delayValue">433.3</strong><em>μs</em></div>
+          <div class="metric"><small>多普勒频移 fᴅ = 2v/λ</small><strong id="dopplerValue">+3.0</strong><em>kHz</em></div>
+        </div>
+        <p class="explain" id="directionText">此处取波长 λ = 3 cm，规定目标向雷达靠近为正速度。拖动距离，只改变回波出现的时间；拖动速度，则改变多普勒频移。</p>
+        <div class="takeaway"><strong>记住这个</strong>距离主要体现在<strong>往返时延</strong>，径向速度主要体现在<strong>多普勒频移</strong>。它们是两种不同的观测信息。</div>
+      </section>
+
+      <section class="lesson" id="compression" aria-labelledby="title-compression">
+        <div class="lesson-top"><span class="mark">02</span><span>线性调频与匹配滤波</span></div>
+        <h2 id="title-compression">为什么长脉冲能“压”出窄峰？</h2>
+        <p class="lead">线性调频（chirp）让一个较长的脉冲在持续时间里扫过一段频带。匹配滤波利用已知的调频规律，让目标回波在正确的时延处集中形成峰。</p>
+        <div class="control-grid">
+          <div class="control">
+            <label for="bandwidth">调频带宽 B <output id="bandwidthValue" for="bandwidth">6 MHz</output></label>
+            <input id="bandwidth" type="range" min="1" max="20" step="1" value="6">
+            <div class="range-ends"><span>1 MHz</span><span>20 MHz</span></div>
+          </div>
+          <div class="control">
+            <label for="duration">脉冲时宽 T <output id="durationValue" for="duration">30 μs</output></label>
+            <input id="duration" type="range" min="10" max="80" step="5" value="30">
+            <div class="range-ends"><span>10 μs</span><span>80 μs</span></div>
+          </div>
+        </div>
+        <div class="twoplots">
+          <div class="graph small-graph">
+            <div class="graph-title"><span>发射：频率随时间扫动</span><span>f(t)</span></div>
+            <canvas id="chirpCanvas" aria-label="线性调频瞬时频率轨迹" role="img"></canvas>
+          </div>
+          <div class="graph small-graph">
+            <div class="graph-title"><span>接收处理：压缩后的峰</span><span>|输出|</span></div>
+            <canvas id="pulseCanvas" aria-label="匹配滤波输出随距离偏移的示意幅度" role="img"></canvas>
+          </div>
+        </div>
+        <div class="values">
+          <div class="metric"><small>理想距离分辨率 ΔR ≈ c/(2B)</small><strong id="resolutionValue">25.0</strong><em>m</em></div>
+          <div class="metric"><small>时间带宽积 BT</small><strong id="btValue">180</strong><em>无量纲</em></div>
+        </div>
+        <p class="explain">试着只增加脉宽：右边峰的宽度基本不变，但时间带宽积增加。再只增大带宽：峰会明显变窄。图中使用理想矩形频谱的 sinc 近似，未模拟噪声、失配及距离旁瓣加窗。</p>
+        <div class="takeaway"><strong>记住这个</strong><strong>带宽决定距离分辨率的主要尺度</strong>；在峰值发射功率等条件相同时，更长的脉冲可以携带更多能量。不要把“脉冲更长”和“分辨率更高”混为一谈。</div>
+      </section>
+
+      <section class="lesson" id="jamming" aria-labelledby="title-jamming">
+        <div class="lesson-top"><span class="mark">03</span><span>干扰的可见现象</span></div>
+        <h2 id="title-jamming">屏幕上多出来的，到底是什么？</h2>
+        <p class="lead">目标回波并不是雷达唯一收到的东西。干扰可以抬高背景，也可以让距离像里出现原本不存在的峰。先看现象，再问该怎样区分它们。</p>
+        <div class="modes" role="group" aria-label="选择干扰情形">
+          <button type="button" data-mode="none" aria-pressed="true">无干扰</button>
+          <button type="button" data-mode="noise" aria-pressed="false">噪声压制</button>
+          <button type="button" data-mode="fake" aria-pressed="false">欺骗假目标</button>
+          <button type="button" data-mode="repeat" aria-pressed="false">重复转发</button>
+        </div>
+        <div class="graph">
+          <div class="graph-title"><span>简化的距离向输出</span><span>距离 / km</span></div>
+          <canvas id="jamCanvas" aria-label="不同干扰情形下的距离向幅度示意" role="img"></canvas>
+        </div>
+        <div class="legend"><span><i style="background:#cf7955"></i>真实目标（教学标注）</span><span><i style="background:#447f77"></i>假峰 / 背景</span></div>
+        <p id="jamExplanation" class="explain" aria-live="polite">没有干扰时，一个真实目标在约 65 km 处形成明显的峰。</p>
+        <div class="takeaway"><strong>记住这个</strong><span id="jamTakeaway">先知道“正常回波长什么样”，才更容易理解干扰改变了什么。</span></div>
+        <p class="note">这是概念示意，不是完整的电磁回波或某种干扰机仿真。“真实目标”标注仅供教学；实际雷达并不知道哪个峰是真的。不同参数和处理链下，干扰外观可能完全不同。</p>
+      </section>
+    </main>
+    <footer><span>把几个容易卡住的概念，慢慢讲清楚。</span><a href="/sky/">去看会儿星星 ↗</a></footer>
+  </div>
+  <noscript><p style="text-align:center;padding:18px">启用 JavaScript 后可以拖动参数，观察三个小实验。</p></noscript>
+  <script>
+    (function(){
+      "use strict";
+      const $=function(id){return document.getElementById(id);};
+      const c=299792458,lambda=.03;
+      const distance=$("distance"),velocity=$("velocity"),bandwidth=$("bandwidth"),duration=$("duration");
+      function prepare(id){
+        const canvas=$(id),rect=canvas.getBoundingClientRect(),ratio=Math.min(window.devicePixelRatio||1,2);
+        const w=Math.max(rect.width,200),h=Math.max(rect.height,100);
+        canvas.width=Math.round(w*ratio);canvas.height=Math.round(h*ratio);
+        const ctx=canvas.getContext("2d");ctx.setTransform(ratio,0,0,ratio,0,0);
+        return{ctx:ctx,w:w,h:h};
+      }
+      function line(ctx,points,color,width){
+        ctx.beginPath();for(let i=0;i<points.length;i++){if(i===0)ctx.moveTo(points[i][0],points[i][1]);else ctx.lineTo(points[i][0],points[i][1]);}
+        ctx.strokeStyle=color;ctx.lineWidth=width||2;ctx.stroke();
+      }
+      function text(ctx,str,x,y,align,color){
+        ctx.fillStyle=color||"#74827a";ctx.font="11px system-ui, sans-serif";ctx.textAlign=align||"left";ctx.fillText(str,x,y);
+      }
+      function axes(ctx,w,h,left,right,top,bottom){
+        ctx.strokeStyle="#dfe5dd";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(left,h-bottom);ctx.lineTo(w-right,h-bottom);ctx.stroke();
+        return{left:left,right:right,top:top,bottom:bottom,width:w-left-right,height:h-top-bottom};
+      }
+      function gaussian(x,mid,spread){const z=(x-mid)/spread;return Math.exp(-z*z/2);}
+      function drawEcho(){
+        const d=Number(distance.value),v=Number(velocity.value);
+        const tau=2*d*1000/c*1e6,fd=2*v/lambda/1000;
+        $("distanceValue").textContent=d+" km";
+        $("velocityValue").textContent=(v>0?"+":"")+v+" m/s";
+        $("delayValue").textContent=tau.toFixed(1);
+        $("dopplerValue").textContent=(fd>0?"+":"")+fd.toFixed(1);
+        const where=v>0?"向雷达靠近":v<0?"远离雷达":"径向静止";
+        $("directionText").textContent="此处取波长 λ = 3 cm，规定靠近为正速度。当前目标"+where+"；速度改变多普勒频移，距离改变回波往返时延。";
+        const x=210+(d-10)/130*510;
+        $("target").setAttribute("transform","translate("+x+" 88)");
+        $("beam").setAttribute("x2",String(x-30));
+        $("targetLabel").setAttribute("x",String(x));
+        $("targetLabel").textContent=d+" km";
+        $("speedLabel").setAttribute("x",String(x));
+        $("speedLabel").textContent=where;
+        $("speedArrow").setAttribute("x1",String(v>=0?x+36:x-36));
+        $("speedArrow").setAttribute("x2",String(v>=0?x-12:x+12));
+        $("speedArrow").setAttribute("opacity",v===0?"0":"1");
+        const g=prepare("echoCanvas"),ctx=g.ctx,w=g.w,h=g.h,L=45,R=22,span=w-L-R;
+        ctx.clearRect(0,0,w,h);
+        for(let i=0;i<=5;i++){const px=L+span*i/5;line(ctx,[[px,20],[px,h-28]],"#e5eae4",1);text(ctx,String(i*200),px,h-12,"center");}
+        text(ctx,"发射",9,49);text(ctx,"回波",9,111);
+        const p0=L+3,pr=L+span*tau/1000;
+        function pulse(x,mid,color){
+          const points=[];for(let i=0;i<400;i++){const xx=L+span*i/399,y=mid-36*gaussian(xx,x,Math.max(4,span*.009));points.push([xx,y]);}
+          line(ctx,points,color,2.4);
+        }
+        line(ctx,[[L,53],[w-R,53]],"#a0afa8",1);
+        line(ctx,[[L,115],[w-R,115]],"#a0afa8",1);
+        pulse(p0,53,"#cf7955");pulse(pr,115,"#367c70");
+        ctx.strokeStyle="#90ada4";ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pr,52);ctx.lineTo(pr,116);ctx.stroke();ctx.setLineDash([]);
+      }
+      function drawChirp(){
+        const B=Number(bandwidth.value),T=Number(duration.value);
+        $("bandwidthValue").textContent=B+" MHz";
+        $("durationValue").textContent=T+" μs";
+        $("resolutionValue").textContent=(c/(2*B*1e6)).toFixed(1);
+        $("btValue").textContent=String(B*T);
+        const a=prepare("chirpCanvas"),ctx=a.ctx,w=a.w,h=a.h;
+        ctx.clearRect(0,0,w,h);
+        const q=axes(ctx,w,h,42,19,23,32);
+        for(let i=0;i<=4;i++){
+          const xx=q.left+q.width*i/4;
+          line(ctx,[[xx,q.top],[xx,h-q.bottom]],"#e7eae3",1);
+          text(ctx,(T*i/4).toFixed(i===0||i===4?0:1),xx,h-13,"center");
+        }
+        text(ctx,"+B/2",6,q.top+4);text(ctx,"0",22,q.top+q.height/2);text(ctx,"−B/2",6,h-q.bottom);
+        line(ctx,[[q.left,q.top+q.height],[q.left+q.width,q.top]],"#367c70",3);
+        ctx.setLineDash([3,5]);line(ctx,[[q.left,q.top+q.height/2],[q.left+q.width,q.top+q.height/2]],"#d1dcd5",1);ctx.setLineDash([]);
+        const b=prepare("pulseCanvas"),pc=b.ctx,pw=b.w,ph=b.h;
+        pc.clearRect(0,0,pw,ph);
+        const o=axes(pc,pw,ph,32,15,22,32),maxDist=210,dr=c/(2*B*1e6);
+        const xOf=function(m){return o.left+(m+maxDist)/(2*maxDist)*o.width;};
+        pc.fillStyle="rgba(54,124,112,.08)";
+        pc.fillRect(xOf(-dr),o.top,xOf(dr)-xOf(-dr),o.height);
+        for(let i=-2;i<=2;i++){
+          const x=xOf(i*100);line(pc,[[x,o.top],[x,ph-o.bottom]],"#e7eae3",1);text(pc,String(i*100),x,ph-12,"center");
+        }
+        const p=[];
+        for(let i=0;i<=680;i++){
+          const m=-maxDist+2*maxDist*i/680,z=2*B*1e6*m/c;
+          const envelope=Math.abs(z===0?1:Math.sin(Math.PI*z)/(Math.PI*z));
+          p.push([xOf(m),ph-o.bottom-envelope*(o.height-8)]);
+        }
+        line(pc,p,"#cf7955",2.1);
+        text(pc,"0",8,ph-o.bottom);text(pc,"1",8,o.top+8);
+      }
+      let mode="none";
+      const cases={
+        none:{explain:"没有干扰时，一个真实目标在约 65 km 处形成明显的峰。",takeaway:"先知道“正常回波长什么样”，才更容易理解干扰改变了什么。"},
+        noise:{explain:"噪声压制会抬高背景波动，使目标峰相对背景不再那么突出；信噪比和检测性能可能下降。",takeaway:"噪声干扰主要改变背景和目标可检测性，不一定制造一个清晰的假目标峰。"},
+        fake:{explain:"欺骗干扰可能在约 115 km 处制造一个看起来很像目标的峰；仅从这一幅距离像看，并不能直接认出真假。",takeaway:"看到一个尖峰，并不等于那里一定有真实目标。"},
+        repeat:{explain:"重复转发可能在距离向形成多个有规律的假峰。这里画出的是抽象示例，具体分布依赖干扰波形和处理方式。",takeaway:"有些干扰不仅增加能量，还会制造可重复的结构；这也是抗干扰研究的重要线索。"}
+      };
+      function noiseAt(x){return .045+.028*Math.abs(Math.sin(x*.47)*Math.cos(x*1.76))+.02*Math.abs(Math.sin(x*3.97));}
+      function drawJam(){
+        const g=prepare("jamCanvas"),ctx=g.ctx,w=g.w,h=g.h;
+        ctx.clearRect(0,0,w,h);
+        const q=axes(ctx,w,h,34,19,24,37);
+        const X=function(km){return q.left+km/150*q.width;};
+        const Y=function(a){return h-q.bottom-a*(q.height-7);};
+        for(let i=0;i<=5;i++){
+          const k=i*30,px=X(k);line(ctx,[[px,q.top],[px,h-q.bottom]],"#e7eae3",1);text(ctx,String(k),px,h-14,"center");
+        }
+        const p=[],truth=[],fake=[];
+        for(let i=0;i<=750;i++){
+          const km=i*.2,base=noiseAt(km),n=mode==="noise" ? .27+.27*Math.abs(Math.sin(km*1.32)*Math.cos(km*2.87))+.1*Math.abs(Math.sin(km*6.1)) : base;
+          const t=.70*gaussian(km,65,1.8);
+          let f=0;
+          if(mode==="fake")f=.91*gaussian(km,115,1.8);
+          if(mode==="repeat")f=.72*gaussian(km,93,1.9)+.81*gaussian(km,118,1.9)+.66*gaussian(km,141,1.9);
+          const amplitude=Math.min(.98,n+t+f);
+          p.push([X(km),Y(amplitude)]);truth.push([X(km),Y(n+t)]);fake.push([X(km),Y(n+f)]);
+        }
+        line(ctx,p,"#447f77",2.0);
+        function flag(km,color,label,yOffset){
+          const px=X(km);
+          ctx.fillStyle=color;ctx.beginPath();ctx.arc(px,Y(.99)+11,3.5,0,Math.PI*2);ctx.fill();
+          text(ctx,label,Math.max(30,Math.min(w-30,px)),Y(.99)-3+yOffset,"center",color);
+        }
+        flag(65,"#cf7955","真目标",0);
+        if(mode==="fake")flag(115,"#447f77","假峰",0);
+        if(mode==="repeat"){flag(93,"#447f77","假峰",0);flag(118,"#447f77","假峰",0);flag(141,"#447f77","假峰",-2);}
+        $("jamExplanation").textContent=cases[mode].explain;
+        $("jamTakeaway").textContent=cases[mode].takeaway;
+      }
+      const buttons=document.querySelectorAll("[data-mode]");
+      buttons.forEach(function(button){button.addEventListener("click",function(){
+        mode=button.getAttribute("data-mode");
+        buttons.forEach(function(b){b.setAttribute("aria-pressed",String(b===button));});
+        drawJam();
+      });});
+      distance.addEventListener("input",drawEcho);velocity.addEventListener("input",drawEcho);
+      bandwidth.addEventListener("input",drawChirp);duration.addEventListener("input",drawChirp);
+      let pending=false;
+      window.addEventListener("resize",function(){
+        if(pending)return;pending=true;requestAnimationFrame(function(){pending=false;drawEcho();drawChirp();drawJam();});
+      },{passive:true});
+      drawEcho();drawChirp();drawJam();
+    })();
+  </script>
+</body>
+</html>
