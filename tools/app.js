@@ -24,7 +24,7 @@ const fmt = x => {
 };
 const metric = (label, value, unit) => ({label,value,unit});
 const source = (url, text) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${text} ↗</a>`;
-const commonRadar = `<p>单站、自由空间、远场；R 为单程目标斜距，Gₜ/Gᵣ 为功率增益。Pₜ 为脉内峰值功率，Pₜτ 为脉冲能量；τ 是按能量定义的有效脉宽。点目标 RCS 恒定、极化匹配。Lᵣ𝒻 是射频与传播<strong>往返总损耗</strong>，不含自由空间扩散项（已在 R⁴ 中），不含 NF 与处理损耗。Lₚ 包含加窗、失配等处理损耗。</p><p>Tₛᵧₛ = Tₐ + 290(F − 1)，F = 10^(NF/10)。温度与损耗均折算至同一接收输入参考面；不含杂波、干扰、检测概率及虚警门限。</p>`;
+const commonRadar = `<section class="condition-group"><h4>基本模型</h4><ul><li>单站雷达、自由空间、远场传播；R 为单程目标斜距。</li><li>目标 RCS 恒定、极化匹配；发射与接收天线增益 Gₜ / Gᵣ 均指功率增益。</li><li>Pₜ 为脉内峰值功率，Pₜτ 为脉冲能量，τ 为按能量定义的有效脉宽。</li></ul></section><section class="condition-group"><h4>噪声与损耗</h4><ul><li>Lᵣ𝒻 是射频与传播的<strong>往返总损耗</strong>，不含已由 R⁴ 体现的自由空间扩散，不含 NF 和处理损耗。</li><li>Lₚ 表示加窗、失配等处理损耗。</li><li>Tₛᵧₛ = Tₐ + 290(F − 1)，F = 10^(NF/10)；温度与损耗均折算至同一接收输入参考面。</li></ul></section><section class="condition-group"><h4>不包含的效应</h4><p>不考虑杂波、干扰、检测概率及虚警门限。</p></section>`;
 const configs = [
  { id:'base64', name:'Base64 编解码', short:'06 / TEXT', lead:'把 UTF-8 文本编码为 Base64，或解码回文本。中文与多行文本都可以。',
   fields:[select('direction','处理方向','encode',[['encode','文本 → Base64'],['decode','Base64 → 文本']]),{key:'text',label:'输入内容',value:'你好，世界！',type:'text'}],
@@ -35,14 +35,14 @@ const configs = [
   calculate:p => [metric('单程自由空间路径损耗',M.fspl(p.f,p.r),'dB'),metric('波长 λ',M.C/p.f,'m'),metric('距离翻倍，损耗增加',20*Math.log10(2),'dB')],
   formula:'FSPL = 20 log₁₀(4πRf / c)',
   conditions:`<p>f 用 Hz，R 用 m；c = 299 792 458 m/s。适用自由空间、视距、远场传播；天线增益、吸收、遮挡、多径均未计入。很短距离下出现负值不代表实际链路增益，须先确认远场条件。</p><p><strong>这是单程传播损耗。</strong>雷达回波还包含目标散射、往返传播与接收孔径，不能将 FSPL 简单乘二当作完整雷达方程。请使用单脉冲 / SAR 工具。</p><p>公式参考：${source('https://www.itu.int/rec/R-REC-P.525/en','ITU-R P.525')}。</p>`, chart:true },
- { id:'pulse', name:'单脉冲雷达', short:'02A / RADAR', lead:'一次脉冲的回波功率，以及理想匹配滤波后的能量 SNR。', fields:radarFields(),
-  calculate:p => {const x=M.radar(p);return [metric('单脉冲匹配滤波后 SNR',x.single,'dB'),metric('接收峰值功率 Pᵣ',x.prdbm,'dBm'),metric('接收峰值功率 Pᵣ',x.watts,'W'),metric('带宽 B 内滤波前 SNR',x.pre,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];},
+ { id:'pulse', name:'单次脉冲回波 SNR', short:'02A / RADAR', lead:'计算单次发射脉冲的接收回波功率，以及理想匹配滤波后的信噪比；不涉及单脉冲测角。', fields:radarFields(),
+  calculate:p => {const x=M.radar(p);return [metric('单次脉冲匹配滤波后 SNR',x.single,'dB'),metric('接收峰值功率 Pᵣ',x.prdbm,'dBm'),metric('接收峰值功率 Pᵣ',x.watts,'W'),metric('带宽 B 内滤波前 SNR',x.pre,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];},
   formula:'Pᵣ = Pₜ Gₜ Gᵣ λ² σ / [(4π)³ R⁴ Lᵣ𝒻]\nSNR₁ = Pᵣ τ / (k Tₛᵧₛ Lₚ)\nSNRᵢₙ = Pᵣ / (k Tₛᵧₛ B)',
-  conditions:commonRadar+`<p>采用复基带能量约定：噪声谱密度 kTₛᵧₛ；单脉冲匹配滤波输出 SNR = Eᵣ/(kTₛᵧₛ)。带宽 B 应覆盖信号。以 Pᵣ/(kTₛᵧₛB) 为起点时，距离处理增益为 Bτ；以能量 SNR 为起点时，<strong>不能再乘一次 Bτ</strong>。Bτ &lt; 1 时，输入带宽与有效脉宽通常不相容，应检查波形 / 带宽。</p><p>参考：${source('https://www.mathworks.com/help/radar/ref/radareqsnr.html','单脉冲能量雷达方程')}。</p>` },
- { id:'sar', name:'成像雷达 · SAR', short:'02B / IMAGING', lead:'显式给定积累脉冲数的简化 SAR 能量预算。分别估算点目标与一个地面分辨单元。',
+  conditions:commonRadar+`<p>采用复基带能量约定：噪声谱密度 kTₛᵧₛ；单脉冲匹配滤波输出 SNR = Eᵣ/(kTₛᵧₛ)。带宽 B 应覆盖信号。以 Pᵣ/(kTₛᵧₛB) 为起点时，距离处理增益为 Bτ；以能量 SNR 为起点时，<strong>不能再乘一次 Bτ</strong>。Bτ &lt; 1 时，输入带宽与有效脉宽通常不相容，应检查波形 / 带宽。</p><p>参考：${source('https://www.mathworks.com/help/radar/ref/radareqsnr.html','单次脉冲能量雷达方程')}。</p>` },
+ { id:'sar', name:'SAR 成像 SNR / NESZ', short:'02B / IMAGING', lead:'估算 SAR 聚焦后的信噪比：支持点目标和分布式地面单元，分布式模式同时给出 NESZ。',
   fields:[select('target','目标模型','point',[['point','点目标 · 恒定 RCS'],['distributed','分布式 · σ⁰ × 地面单元面积']]),...radarFields(),field('n','相干积累脉冲数 N',128,'pulses','脉冲',1,false),
     field('sigma0','后向散射系数 σ⁰',-10,'dB','dB',null),field('az','地面方位分辨率 δₐ',3,'distance','m'),field('angle','入射角 θ（相对地面法线）',45,'°','°')],
-  calculate:p => {const x=M.sar(p);let out=[metric(p.target==='point'?'点目标聚焦后 SNR':'分辨单元平均热噪声 SNR',x.image,'dB'),metric('单脉冲匹配滤波后 SNR',x.single,'dB'),metric('理想相干积累增益 N',x.azGain,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('等效 RCS σ',x.sigma,'m²'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];if(p.target==='distributed')out.push(metric('地面分辨单元面积 A',x.area,'m²'),metric('噪声等效 σ⁰ · NESZ',x.nesz,'dB'));return out;},
+  calculate:p => {const x=M.sar(p);let out=[metric(p.target==='point'?'点目标聚焦后 SNR':'分辨单元平均热噪声 SNR',x.image,'dB'),metric('单次脉冲匹配滤波后 SNR',x.single,'dB'),metric('理想相干积累增益 N',x.azGain,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('等效 RCS σ',x.sigma,'m²'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];if(p.target==='distributed')out.push(metric('地面分辨单元面积 A',x.area,'m²'),metric('噪声等效 σ⁰ · NESZ',x.nesz,'dB'));return out;},
   formula:'SNRᵢₘ𝓰 = N Pᵣ τ / (k Tₛᵧₛ Lₚ)\n点目标：σ = 输入 RCS\n分布式：δᵣ,ground = c / (2B sin θ)\nA = δᵣ,ground δₐ，σ = σ⁰ A\nNESZ = σ⁰ / SNRᵢₘ𝓰（线性）',
   conditions:commonRadar+`<p><strong>明确建模：</strong>N 个脉冲有相同能量、近似相同距离与天线增益；独立白热噪声、等权积累，目标静止且相位完全补偿，距离迁移已校正。点目标采用恒定 RCS。由能量 SNR 推得相干增益 N（不是 N²）；Bτ 仅显示供核对，不重复计入。非等权加窗、波束变化、相位误差等须用 Lₚ 计入。N 与 δₐ 由用户给定，本工具不自动验证两者的几何可实现性，也不替代条带 / 聚束 SAR 系统设计。</p><p>分布式模式采用平坦地面、局部恒定入射角 0° &lt; θ &lt; 90°、均匀 σ⁰（单位 m²/m²）、互不相关散射单元。将一个<strong>矩形地面分辨单元</strong>平均 RCS 近似为 σ⁰A；δₐ 为输入地面方位分辨率，距离分辨率取未加窗 c/(2B)，本模式 B 同时作为信号带宽与等效噪声带宽。加窗或其他像元权重下需另外修正等效面积和处理损耗。输出是平均信号功率 / 热噪声功率，<strong>不包含散斑、杂波、模糊、地形起伏和多视处理</strong>；θ 接近 0° 时地面投影近似失效。</p><p>NESZ 为该模型中 SNR = 1（0 dB）时的 σ⁰。此页从单脉冲能量预算推导，参考 ${source('https://www.mathworks.com/help/radar/ref/radareqsnr.html','能量雷达方程')} 与 ${source('https://www.mathworks.com/help/radar/ug/airborne-sar-system-design.html','SAR 处理与几何说明')}，并非将某一条带公式推广到所有成像体制。</p>` },
  { id:'noise', name:'热噪声功率', short:'03 / kTB + NF', lead:'看一眼噪声底。默认 290 K 时，就是常用的 kTB + NF。', fields:[bandwidth(),...thermal()],
@@ -61,6 +61,54 @@ const configs = [
   conditions:`<p>W、mW 和线性比值输入须大于 0；dBm、dBW、dB 可为负。dBm 参考 1 mW，dBW 参考 1 W。<strong>幅度比换算假设相同阻抗</strong>（功率与幅度平方成正比），不包含相位；不同阻抗不能直接用 20 log₁₀ 电压比换算功率比。</p>` }
 ];
 configs.push(configs.shift());
+
+/* Native MathML keeps equations local; no external renderer or fonts. */
+function renderFormula(c){
+ const mi=s=>'<mi>'+s+'</mi>', plain=s=>'<mi mathvariant="normal">'+s+'</mi>', mn=s=>'<mn>'+s+'</mn>', mo=s=>'<mo>'+s+'</mo>';
+ const row=(...a)=>'<mrow>'+a.join('')+'</mrow>', space='<mspace width="0.16em"/>';
+ const mul=(...a)=>a.join(space), sub=(a,b)=>'<msub>'+a+b+'</msub>', sup=(a,b)=>'<msup>'+a+b+'</msup>';
+ const frac=(a,b)=>'<mfrac>'+row(a)+row(b)+'</mfrac>';
+ const par=a=>row(mo('('),a,mo(')'));
+ const log=sub(plain('log'),mn('10'));
+ const Px=k=>sub(mi('P'),plain(k)), S=k=>sub(plain('SNR'),plain(k));
+ const Tsys=sub(mi('T'),plain('sys')), Lp=sub(mi('L'),plain('p'));
+ const eq=(label,expr,mode)=>'<div class="equation"'+(mode?' data-sar-mode="'+mode+'"':'')+'><div class="equation-label">'+label+'</div><div class="math-scroll"><math display="block">'+row(expr)+'</math></div></div>';
+ const result=(...items)=>'<div class="equations">'+items.join('')+'</div>';
+ const radSNR=frac(mul(Px('r'),mi('τ')),mul(mi('k'),Tsys,Lp));
+ switch(c.id){
+ case 'fspl': return result(eq('单程自由空间路径损耗',row(plain('FSPL'),mo('='),mn('20'),log,par(frac(mul(mn('4'),mi('π'),mi('R'),mi('f')),mi('c'))))));
+ case 'pulse': return result(
+   eq('雷达回波接收峰值功率',row(Px('r'),mo('='),frac(mul(Px('t'),sub(mi('G'),mi('t')),sub(mi('G'),mi('r')),sup(mi('λ'),mn('2')),mi('σ')),mul(sup(par(mul(mn('4'),mi('π'))),mn('3')),sup(mi('R'),mn('4')),sub(mi('L'),plain('rf')))))),
+   eq('单次脉冲匹配滤波后 SNR',row(S('1'),mo('='),radSNR)),
+   eq('接收带宽内、滤波前 SNR',row(S('in'),mo('='),frac(Px('r'),mul(mi('k'),Tsys,mi('B')))))
+ );
+ case 'sar': return result(
+   eq('SAR 聚焦后的信噪比',row(S('img'),mo('='),frac(mul(mi('N'),Px('r'),mi('τ')),mul(mi('k'),Tsys,Lp)))),
+   eq('点目标：输入的散射截面',row(mi('σ'),mo('='),sub(mi('σ'),plain('point'))),'point'),
+   eq('分布式：地面距离分辨率',row(sub(mi('δ'),row(mi('r'),mo(','),plain('ground'))),mo('='),frac(mi('c'),mul(mn('2'),mi('B'),plain('sin'),mi('θ')))),'distributed'),
+   eq('分布式：地面单元面积与等效 RCS',row(mi('A'),mo('='),mul(sub(mi('δ'),row(mi('r'),mo(','),plain('ground'))),sub(mi('δ'),mi('a'))),mo(','),mi('σ'),mo('='),mul(sup(mi('σ'),mn('0')),mi('A'))),'distributed'),
+   eq('分布式：噪声等效后向散射系数（线性）',row(plain('NESZ'),mo('='),frac(sup(mi('σ'),mn('0')),S('img'))),'distributed')
+ );
+ case 'noise': return result(
+   eq('噪声系数与等效温度',row(mi('F'),mo('='),sup(mn('10'),frac(plain('NF'),mn('10'))),mo(','),sub(mi('T'),mi('e')),mo('='),mul(mn('290'),plain('K'),par(row(mi('F'),mo('−'),mn('1')))))),
+   eq('系统温度与噪声功率',row(Tsys,mo('='),sub(mi('T'),mi('a')),mo('+'),sub(mi('T'),mi('e')),mo(','),sub(mi('P'),mi('n')),mo('='),mul(mi('k'),Tsys,mi('B')))),
+   eq('Tₐ = 290 K 时的常用 dBm 公式',row(sub(mi('P'),row(mi('n'),mo(','),plain('dBm'))),mo('='),mul(mn('10'),log,par(frac(mul(mi('k'),sub(mi('T'),mi('a')),mi('B')),mul(mn('1'),plain('mW'))))),mo('+'),plain('NF')))
+ );
+ case 'motion': return result(
+   eq('距离与往返回波时延',row(mi('τ'),mo('='),frac(mul(mn('2'),mi('R')),mi('c')),mo(','),mi('R'),mo('='),frac(mul(mi('c'),mi('τ')),mn('2')))),
+   eq('径向速度与多普勒',row(sub(mi('f'),mi('D')),mo('='),frac(mul(mn('2'),sub(mi('v'),mi('r')),mi('f')),mi('c')),mo(','),sub(mi('v'),mi('r')),mo('='),frac(mul(mi('c'),sub(mi('f'),mi('D'))),mul(mn('2'),mi('f')))))
+ );
+ case 'db': return result(
+   eq('绝对功率（dBm）',row(sub(mi('P'),plain('dBm')),mo('='),mul(mn('10'),log,par(frac(plain('P(W)'),mul(mn('1'),plain('mW'))))))),
+   eq('绝对功率（dBW）',row(sub(mi('P'),plain('dBW')),mo('='),mul(mn('10'),log,par(frac(plain('P(W)'),mul(mn('1'),plain('W'))))),mo(','),sub(mi('P'),plain('dBm')),mo('='),sub(mi('P'),plain('dBW')),mo('+'),mn('30'))),
+   eq('功率比',row(plain('dB'),mo('='),mul(mn('10'),log,par(frac(sub(mi('P'),mn('2')),sub(mi('P'),mn('1'))))))),
+   eq('幅度比（相同阻抗）',row(plain('dB'),mo('='),mul(mn('20'),log,par(frac(row(mo('|'),sub(mi('A'),mn('2')),mo('|')),row(mo('|'),sub(mi('A'),mn('1')),mo('|')))))))
+ );
+ case 'base64': return '<div class="equations"><div class="equation"><div class="equation-label">编码</div><p class="formula-flow">Unicode 文本 → UTF-8 字节 → Base64</p></div><div class="equation"><div class="equation-label">解码</div><p class="formula-flow">Base64 → UTF-8 字节 → Unicode 文本</p></div></div>';
+ default: throw new Error('未知公式工具');
+ }
+}
+
 const states = new Map();
 const nav = document.querySelector('.tool-nav'), panels = document.querySelector('#panels');
 function optionMarkup(options, selected) { return options.map(([v,label])=>`<option value="${v}" ${String(v)===String(selected)?'selected':''}>${label}</option>`).join(''); }
@@ -74,7 +122,7 @@ function fieldMarkup(c, f) {
 configs.forEach((c,i)=>{
  const b=document.createElement('button');b.type='button';b.id=`tab-${c.id}`;b.role='tab';b.setAttribute('aria-controls',c.id);b.setAttribute('aria-selected','false');b.tabIndex=-1;b.innerHTML=`${c.name}<small>${c.short}</small>`;nav.append(b);
  const section=document.createElement('section');section.className='panel';section.id=c.id;section.role='tabpanel';section.tabIndex=0;section.hidden=true;section.setAttribute('aria-labelledby',b.id);
- section.innerHTML=`<span class="tag">${c.short}</span><h2>${c.name}</h2><p class="lead">${c.lead}</p><form aria-label="${c.name}参数" novalidate><div class="inputs">${c.fields.map(f=>fieldMarkup(c,f)).join('')}</div></form><p class="error" id="${c.id}-error" role="status" hidden></p><div class="results" aria-live="polite" aria-atomic="true"></div>${c.chart?`<figure class="chart" hidden><svg viewBox="0 0 560 230" role="img" aria-labelledby="fspl-chart-title fspl-chart-desc"><title id="fspl-chart-title">距离与单程自由空间路径损耗</title><desc id="fspl-chart-desc"></desc><g class="plot"></g></svg><figcaption>横轴为对数距离，纵轴为单程损耗。橙点是当前参数。</figcaption></figure>`:''}<p class="notice" hidden></p><div class="actions"><button type="button" class="copy">复制结果</button><button type="button" class="reset">恢复默认</button><span class="copy-status" role="status"></span></div><details><summary>公式与适用条件</summary><div class="conditions"><p class="formula">${c.formula.replaceAll('\n','<br>')}</p>${c.conditions}</div></details>`;
+ section.innerHTML=`<span class="tag">${c.short}</span><h2>${c.name}</h2><p class="lead">${c.lead}</p><form aria-label="${c.name}参数" novalidate><div class="inputs">${c.fields.map(f=>fieldMarkup(c,f)).join('')}</div></form><p class="error" id="${c.id}-error" role="status" hidden></p><div class="results" aria-live="polite" aria-atomic="true"></div>${c.chart?`<figure class="chart" hidden><svg viewBox="0 0 560 230" role="img" aria-labelledby="fspl-chart-title fspl-chart-desc"><title id="fspl-chart-title">距离与单程自由空间路径损耗</title><desc id="fspl-chart-desc"></desc><g class="plot"></g></svg><figcaption>横轴为对数距离，纵轴为单程损耗。橙点是当前参数。</figcaption></figure>`:''}<p class="notice" hidden></p><div class="actions"><button type="button" class="copy">复制结果</button><button type="button" class="reset">恢复默认</button><span class="copy-status" role="status"></span></div><details><summary>公式与适用条件</summary><div class="formula-section"><h3>计算公式</h3>${renderFormula(c)}</div><div class="conditions"><h3>模型与适用条件</h3>${c.conditions}</div></details>`;
  panels.append(section);states.set(c.id,{section,fields:structuredClone(c.fields),metrics:[],lastUnits:new Map()});
  c.fields.filter(f=>units[f.type]).forEach(f=>states.get(c.id).lastUnits.set(f.key,f.unit));
  b.addEventListener('click',()=>activate(c.id));
@@ -97,6 +145,7 @@ function adapt(c, changed) {
  if(c.id==='sar'){
  const distributed=form.elements.target.value==='distributed';
  ['sigma0','az','angle'].forEach(k=>{section.querySelector(`[data-field="${k}"]`).hidden=!distributed;});section.querySelector('[data-field="sigma"]').hidden=distributed;
+ section.querySelectorAll('[data-sar-mode]').forEach(el=>{el.hidden=el.dataset.sarMode!==(distributed?'distributed':'point');});
  }
  if(c.id==='motion'){
  if(!changed||changed==='rangeDirection')replaceNumeric(c,'rangeValue',form.elements.rangeDirection.value==='range'?field('rangeValue','距离',50,'distance','km',0,false):field('rangeValue','往返回波时延',333.564,'time','μs',0,false));
