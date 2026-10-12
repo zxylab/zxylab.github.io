@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#efe8dc"><meta name="description" content="一个人的小公寓。挪一挪家具，拉开窗帘，给自己留一盏灯。">
+  <title>一个人的小家 · 一小块空地</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23eee5d6'/%3E%3Cpath d='m6 16 10-9 10 9v11H6Z' fill='%23908468'/%3E%3Cpath d='M13 27V17h6v10' fill='%23f4c77e'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar"><a class="back" href="/">← 回到空地</a><nav aria-label="其他地方"><a href="/repair/">小小修理铺 ↗</a><button id="quiet" type="button" aria-pressed="false">声音：关</button></nav></header>
+  <main>
+    <div class="heading"><div><p class="eyebrow">A ROOM OF YOUR OWN</p><h1>一个人的小家。</h1></div><p class="intro">灯留着，书翻着。<br>今天也可以，什么都不赶。</p></div>
+    <section class="room-wrap" aria-label="可交互的单人公寓">
+      <div id="room" class="room"><p id="loading" class="loading" role="status">把阳光搬进来…</p></div>
+      <div class="scene-controls" role="group" aria-label="房间环境"><button id="day" type="button">傍晚</button><button id="weather" type="button" aria-pressed="false">下点雨</button><button id="arrange" type="button" aria-pressed="false">挪挪家具</button><button id="wallpaper" type="button" aria-pressed="false">安静看一会儿</button></div>
+      <p id="hint" class="hint">点点屋里的东西，看看会发生什么。</p>
+      <aside id="object-panel" class="object-panel" aria-labelledby="object-title" hidden><button id="close-panel" class="close" type="button" aria-label="收起物品操作">×</button><p class="eyebrow">屋里的小事</p><h2 id="object-title"></h2><p id="object-description"></p><div id="object-actions" class="object-actions"></div></aside>
+      <span id="hover-label" class="hover-label" hidden></span>
+    </section>
+    <div class="below"><p id="message" role="status" aria-live="polite">一扇窗，一张床，还有一点自己的时间。</p><span id="save-note">你的布置会留在这台设备上。</span></div>
+    <details class="objects"><summary>看看屋里有什么 <span>也可以用键盘操作</span></summary><div id="object-list" class="object-list"></div><button id="reset" class="reset" type="button">恢复最初的家具摆放</button></details>
+  </main>
+  <footer><span>一个人住，也把日子过得软一点。</span><a href="/repair/">有件小东西坏了？去修理铺 ↗</a></footer>
+  <noscript><p>启用 JavaScript，就可以布置和使用这间小公寓。</p></noscript>
+  <script type="module">
+    import('./room.js').catch(() => { document.getElementById('loading').textContent='小屋暂时没能打开，请刷新再试。'; });
+  </script>
+</body>
+</html>
