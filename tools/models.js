@@ -31,6 +31,11 @@
     return { ts, prdb, prdbm: prdb + 30, watts: linear(prdb), pre: prdb - ndb,
       single: prdb + db(p.tau) - db(K) - db(ts) - p.processing, rangeGain: db(p.b) + db(p.tau) };
   }
+  function pulse(p) {
+    positive(p.n, '积累脉冲数'); if (!Number.isSafeInteger(p.n)) throw new Error('积累脉冲数须为安全范围内的整数');
+    const base = radar(p), gain = db(p.n);
+    return { ...base, integrated: base.single + gain, gain };
+  }
   function sar(p) {
     positive(p.n, '积累脉冲数'); if (!Number.isSafeInteger(p.n)) throw new Error('积累脉冲数须为安全范围内的整数');
     let sigma = p.sigma, area;
@@ -78,7 +83,7 @@
     try { return new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(Uint8Array.from(binary, x => x.charCodeAt(0))); }
     catch { throw new Error('解码字节不是有效的 UTF-8 文本；此工具不处理二进制文件'); }
   }
-  const api = { C, K, T0, db, fspl, noise, radar, sar, rangeTime, doppler, power, ratio, base64 };
+  const api = { C, K, T0, db, fspl, noise, radar, pulse, sar, rangeTime, doppler, power, ratio, base64 };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.ToolModels = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this);
