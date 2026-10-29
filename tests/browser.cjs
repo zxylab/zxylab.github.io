@@ -23,7 +23,17 @@ const out = process.env.SCREENSHOT_DIR;
  // Keyboard navigation and hash entry.
  await tabs.nth(0).focus();await page.keyboard.press('ArrowRight');assert.equal(await tabs.nth(1).getAttribute('aria-selected'),'true');assert.equal(new URL(page.url()).hash,'#pulse');
  await page.locator('#pulse-tau').fill('0');assert.equal(await result('pulse').isVisible(),false);await page.locator('#pulse .reset').click();
- await page.getByRole('tab',{name:'成像雷达 · SAR',exact:false}).click();
+ assert.equal(await page.locator('#pulse-n').inputValue(),'1');
+ const pulseMetric=label=>page.locator('#pulse .metric').filter({has:page.locator('small',{hasText:label})}).locator('strong');
+ const single=Number((await pulseMetric('单次脉冲匹配滤波后 SNR').innerText()).replace('dB',''));
+ await page.locator('#pulse-n').fill('100');
+ const integrated=Number((await pulseMetric('相干积累后 SNR').innerText()).replace('dB',''));
+ assert.ok(Math.abs(integrated-single-20)<0.0001);assert.equal(await pulseMetric('理想相干积累增益 N').innerText(),'20dB');
+ await page.locator('#pulse .copy').click();await page.waitForFunction(()=>document.querySelector('#pulse .copy-status').textContent.includes('已复制'));
+ const pulseCopy=await page.evaluate(()=>navigator.clipboard.readText());assert.match(pulseCopy,/相干积累脉冲数 N：100 脉冲/);assert.match(pulseCopy,/相干积累后 SNR/);
+ for(const n of ['0','-1','1.5','']){await page.locator('#pulse-n').fill(n);assert.equal(await result('pulse').isVisible(),false);assert.equal(await page.locator('#pulse .copy').isDisabled(),true);}
+ await page.locator('#pulse .reset').click();assert.equal(await page.locator('#pulse-n').inputValue(),'1');assert.equal(await result('pulse').isVisible(),true);
+ await page.locator('#tab-sar').click();
  await page.locator('#sar-target').selectOption('distributed');assert.equal(await page.locator('#sar-sigma').isVisible(),false);assert.equal(await page.locator('#sar-sigma0').isVisible(),true);assert.match(await result('sar').innerText(),/NESZ/);
  await page.locator('#sar-angle').fill('90');assert.equal(await result('sar').isVisible(),false);
  await page.locator('#sar-angle').fill('45');await page.locator('#sar-n').fill('1.5');assert.equal(await result('sar').isVisible(),false);

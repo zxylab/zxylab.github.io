@@ -35,10 +35,10 @@ const configs = [
   calculate:p => [metric('单程自由空间路径损耗',M.fspl(p.f,p.r),'dB'),metric('波长 λ',M.C/p.f,'m'),metric('距离翻倍，损耗增加',20*Math.log10(2),'dB')],
   formula:'FSPL = 20 log₁₀(4πRf / c)',
   conditions:`<p>f 用 Hz，R 用 m；c = 299 792 458 m/s。适用自由空间、视距、远场传播；天线增益、吸收、遮挡、多径均未计入。很短距离下出现负值不代表实际链路增益，须先确认远场条件。</p><p><strong>这是单程传播损耗。</strong>雷达回波还包含目标散射、往返传播与接收孔径，不能将 FSPL 简单乘二当作完整雷达方程。请使用单脉冲 / SAR 工具。</p><p>公式参考：${source('https://www.itu.int/rec/R-REC-P.525/en','ITU-R P.525')}。</p>`, chart:true },
- { id:'pulse', name:'单次脉冲回波 SNR', short:'02A / RADAR', lead:'计算单次发射脉冲的接收回波功率，以及理想匹配滤波后的信噪比；不涉及单脉冲测角。', fields:radarFields(),
-  calculate:p => {const x=M.radar(p);return [metric('单次脉冲匹配滤波后 SNR',x.single,'dB'),metric('接收峰值功率 Pᵣ',x.prdbm,'dBm'),metric('接收峰值功率 Pᵣ',x.watts,'W'),metric('带宽 B 内滤波前 SNR',x.pre,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];},
-  formula:'Pᵣ = Pₜ Gₜ Gᵣ λ² σ / [(4π)³ R⁴ Lᵣ𝒻]\nSNR₁ = Pᵣ τ / (k Tₛᵧₛ Lₚ)\nSNRᵢₙ = Pᵣ / (k Tₛᵧₛ B)',
-  conditions:commonRadar+`<p>采用复基带能量约定：噪声谱密度 kTₛᵧₛ；单脉冲匹配滤波输出 SNR = Eᵣ/(kTₛᵧₛ)。带宽 B 应覆盖信号。以 Pᵣ/(kTₛᵧₛB) 为起点时，距离处理增益为 Bτ；以能量 SNR 为起点时，<strong>不能再乘一次 Bτ</strong>。Bτ &lt; 1 时，输入带宽与有效脉宽通常不相容，应检查波形 / 带宽。</p><p>参考：${source('https://www.mathworks.com/help/radar/ref/radareqsnr.html','单次脉冲能量雷达方程')}。</p>` },
+ { id:'pulse', name:'脉冲回波 SNR', short:'02A / RADAR', lead:'计算接收回波功率、单次脉冲匹配滤波后及多脉冲相干积累后的信噪比；N = 1 时为单次脉冲。', fields:[...radarFields(),field('n','相干积累脉冲数 N',1,'pulses','脉冲',1,false)],
+  calculate:p => {const x=M.pulse(p);return [metric('相干积累后 SNR',x.integrated,'dB'),metric('单次脉冲匹配滤波后 SNR',x.single,'dB'),metric('理想相干积累增益 N',x.gain,'dB'),metric('接收峰值功率 Pᵣ',x.prdbm,'dBm'),metric('接收峰值功率 Pᵣ',x.watts,'W'),metric('带宽 B 内滤波前 SNR',x.pre,'dB'),metric('理想距离处理增益 Bτ',x.rangeGain,'dB'),metric('系统噪声温度 Tₛᵧₛ',x.ts,'K')];},
+  formula:'Pᵣ = Pₜ Gₜ Gᵣ λ² σ / [(4π)³ R⁴ Lᵣ𝒻]\nSNR₁ = Pᵣ τ / (k Tₛᵧₛ Lₚ)\nSNRₙ = N SNR₁，Gₙ = 10 log₁₀(N) dB\nSNRᵢₙ = Pᵣ / (k Tₛᵧₛ B)',
+  conditions:commonRadar+`<p>积累脉冲数 N 为正整数，默认 1。采用等能量脉冲、独立白热噪声、等权相干积累，目标回波已对齐且相位已补偿；理想 SNR 增益为 N，即 10 log₁₀(N) dB。加窗、失配及相位误差等损失计入 Lₚ；本页不计算非相干积累增益。</p><p>采用复基带能量约定：噪声谱密度 kTₛᵧₛ；单脉冲匹配滤波输出 SNR = Eᵣ/(kTₛᵧₛ)。带宽 B 应覆盖信号。以 Pᵣ/(kTₛᵧₛB) 为起点时，距离处理增益为 Bτ；以能量 SNR 为起点时，<strong>不能再乘一次 Bτ</strong>。Bτ &lt; 1 时，输入带宽与有效脉宽通常不相容，应检查波形 / 带宽。</p><p>参考：${source('https://www.mathworks.com/help/radar/ref/radareqsnr.html','单次脉冲能量雷达方程')}。</p>` },
  { id:'sar', name:'SAR 成像 SNR / NESZ', short:'02B / IMAGING', lead:'估算 SAR 聚焦后的信噪比：支持点目标和分布式地面单元，分布式模式同时给出 NESZ。',
   fields:[select('target','目标模型','point',[['point','点目标 · 恒定 RCS'],['distributed','分布式 · σ⁰ × 地面单元面积']]),...radarFields(),field('n','相干积累脉冲数 N',128,'pulses','脉冲',1,false),
     field('sigma0','后向散射系数 σ⁰',-10,'dB','dB',null),field('az','地面方位分辨率 δₐ',3,'distance','m'),field('angle','入射角 θ（相对地面法线）',45,'°','°')],
@@ -80,6 +80,8 @@ function renderFormula(c){
  case 'pulse': return result(
    eq('雷达回波接收峰值功率',row(Px('r'),mo('='),frac(mul(Px('t'),sub(mi('G'),mi('t')),sub(mi('G'),mi('r')),sup(mi('λ'),mn('2')),mi('σ')),mul(sup(par(mul(mn('4'),mi('π'))),mn('3')),sup(mi('R'),mn('4')),sub(mi('L'),plain('rf')))))),
    eq('单次脉冲匹配滤波后 SNR',row(S('1'),mo('='),radSNR)),
+   eq('相干积累后的 SNR（线性）',row(S('N'),mo('='),mul(mi('N'),S('1')))),
+   eq('理想相干积累增益（dB）',row(sub(mi('G'),mi('N')),mo('='),mul(mn('10'),log,par(mi('N'))))),
    eq('接收带宽内、滤波前 SNR',row(S('in'),mo('='),frac(Px('r'),mul(mi('k'),Tsys,mi('B')))))
  );
  case 'sar': return result(
@@ -117,7 +119,7 @@ function fieldMarkup(c, f) {
  if(f.type==='text')return `<label class="field text-field" for="${id}"><span class="field-name">${f.label}</span><textarea id="${id}" name="${f.key}" maxlength="1048576" spellcheck="false" aria-describedby="${c.id}-error">${f.value}</textarea></label>`;
  if(f.options)return `<label class="field" for="${id}"><span class="field-name">${f.label}</span><select id="${id}" name="${f.key}">${optionMarkup(f.options,f.value)}</select></label>`;
  const opts=units[f.type];
- return `<label class="field" for="${id}" data-field="${f.key}"><span class="field-name">${f.label}</span><span class="input-row"><input id="${id}" name="${f.key}" type="number" step="any" value="${f.value}" aria-describedby="${c.id}-error">${opts?`<select data-unit-for="${f.key}" aria-label="${f.label}单位">${optionMarkup(opts.map(([u])=>[u,u]),f.unit)}</select>`:`<span class="fixed-unit">${f.unit}</span>`}</span></label>`;
+ return `<label class="field" for="${id}" data-field="${f.key}"><span class="field-name">${f.label}</span><span class="input-row"><input id="${id}" name="${f.key}" type="number" step="${f.type==='pulses'?'1':'any'}"${f.type==='pulses'?' min="1"':''} value="${f.value}" aria-describedby="${c.id}-error">${opts?`<select data-unit-for="${f.key}" aria-label="${f.label}单位">${optionMarkup(opts.map(([u])=>[u,u]),f.unit)}</select>`:`<span class="fixed-unit">${f.unit}</span>`}</span></label>`;
 }
 configs.forEach((c,i)=>{
  const b=document.createElement('button');b.type='button';b.id=`tab-${c.id}`;b.role='tab';b.setAttribute('aria-controls',c.id);b.setAttribute('aria-selected','false');b.tabIndex=-1;b.innerHTML=`${c.name}<small>${c.short}</small>`;nav.append(b);

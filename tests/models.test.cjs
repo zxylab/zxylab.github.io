@@ -8,6 +8,15 @@ test('kTB reference and non-reference antenna temperature',()=>{near(M.noise(1,2
 test('public MathWorks single-pulse reference 5.5868 dB',()=>{near(M.radar(base).single,5.5868,5e-5);});
 test('radar R^-4, losses, pulse energy; bandwidth gain not counted twice',()=>{const x=M.radar(base);near(M.radar({...base,r:base.r*2}).single-x.single,-12.0411998266);near(M.radar({...base,processing:3,loss:2}).single-x.single,-5);near(M.radar({...base,b:base.b*100}).single,x.single);near(M.radar({...base,tau:base.tau*2}).single-x.single,3.0102999566);near(x.pre+x.rangeGain,x.single);});
 test('SAR N=1 reduces to single pulse; N gain is 10logN',()=>{near(M.sar({...base,n:1,target:'point'}).image,M.radar(base).single);near(M.sar({...base,n:100,target:'point'}).image-M.radar(base).single,20);});
+test('pulse integration preserves single-pulse budget and adds coherent gain once',()=>{
+ const single=M.radar(base);
+ for(const [n,gain] of [[1,0],[2,3.0102999566],[100,20],[128,21.0720996965]]){
+  const x=M.pulse({...base,n});near(x.gain,gain);near(x.integrated,single.single+gain);
+  near(x.single,single.single);near(x.prdb,single.prdb);near(x.pre,single.pre);
+ }
+ near(M.pulse({...base,n:100,b:base.b*10,processing:3}).integrated,single.single+17);
+ for(const n of [undefined,0,-1,1.5,NaN,Infinity,Number.MAX_SAFE_INTEGER+1])assert.throws(()=>M.pulse({...base,n}));
+});
 test('distributed SAR uses ground area; NESZ corresponds to image SNR=0',()=>{const p={...base,n:128,target:'distributed',sigma0:-10,az:3,angle:30};const x=M.sar(p);near(x.area, M.C/(2*p.b*.5)*3);near(x.sigma,x.area*.1);near(M.sar({...p,sigma0:x.nesz}).image,0);near(M.sar({...p,az:6}).image-x.image,3.0102999566);});
 test('range and Doppler round trips, zero and negative',()=>{near(M.rangeTime(M.rangeTime(50000,'range'),'time'),50000);near(M.rangeTime(0,'range'),0);for(const v of [-30,0,30])near(M.doppler(M.doppler(v,10e9,'velocity'),10e9,'doppler'),v);});
 test('absolute power and relative amplitude reference values',()=>{near(M.power(30,'dBm').W,1);near(M.power(1,'W').dBm,30);near(M.power(-30,'dBW').mW,1);near(M.ratio(100,'power').dB,20);near(M.ratio(10,'amplitude').power,100);near(M.ratio(-20,'dB').amplitude,.1);});
