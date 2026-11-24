@@ -1,0 +1,29 @@
+name: Village browser verification
+on:
+  push:
+    branches: [feature/village-music-box]
+permissions:
+  contents: read
+jobs:
+  chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check routes, audio controls and saved progress
+        run: |
+          set -euo pipefail
+          npm install --prefix "$RUNNER_TEMP/qa" playwright@1.55.0 --no-audit --no-fund
+          export NODE_PATH="$RUNNER_TEMP/qa/node_modules"
+          "$RUNNER_TEMP/qa/node_modules/.bin/playwright" install chromium
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/village-http.log 2>&1 &
+          trap 'kill $! 2>/dev/null || true' EXIT
+          for i in 1 2 3 4 5; do curl -fsS -o /dev/null http://127.0.0.1:8765/ && break || sleep 1; done
+          node --test tests/models.test.cjs
+          node tests/places.cjs
+          node tests/browser.cjs
