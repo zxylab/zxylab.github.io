@@ -1,6 +1,6 @@
 import { notes, readBox, changeBox } from './music-state.js';
 
-export function openWorkshop({ strike, enableSound, repaired, repair }) {
+export function openWorkshop({ strike, enableSound, startCranking, repaired, repair }) {
   const byId = id => document.getElementById(id);
   const stage = byId('music-stage');
   const roll = byId('note-roll');
@@ -86,7 +86,7 @@ export function openWorkshop({ strike, enableSound, repaired, repair }) {
   }
   function schedule() { if (!raf && active) raf=requestAnimationFrame(frame); }
   function stop() { automatic=null; pointer=null; listen.textContent='试听一圈'; }
-  function turnOneStep() { stop(); advance(turns+1/8,performance.now()); schedule(); }
+  function turnOneStep() { stop(); startCranking(); advance(turns+1/8,performance.now()); schedule(); }
   listen.onclick = () => {
     if (automatic) { stop(); return; }
     enableSound();
@@ -97,7 +97,7 @@ export function openWorkshop({ strike, enableSound, repaired, repair }) {
   byId('step-turn').onclick = turnOneStep;
   stage.onpointerdown = e => {
     if (e.button !== 0 || pointer) return;
-    stop();
+    stop(); startCranking();
     const rect=stage.getBoundingClientRect();
     const fx=(e.clientX-rect.left)/rect.width, fy=(e.clientY-rect.top)/rect.height;
     pointer={id:e.pointerId, x:e.clientX, angle:fx>.64 && model?.crankAngle ? model.crankAngle(fx,fy) : null};

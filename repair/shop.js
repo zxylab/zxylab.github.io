@@ -61,21 +61,24 @@ function renderStar(){
 function ready(){return current==='lamp'?puzzle.screws.every(Boolean)&&puzzle.wires.every(Boolean):current==='music'?puzzle.placed.every(Boolean)&&puzzle.wound===3:puzzle.angles.every(a=>a===0);}
 function update(){let n,total;if(current==='lamp'){n=puzzle.screws.filter(Boolean).length+puzzle.wires.filter(Boolean).length;total=4;}else if(current==='music'){n=puzzle.placed.filter(Boolean).length+puzzle.wound;total=6;}else{n=puzzle.angles.filter(a=>a===0).length;total=5;}$('progress').textContent=`${n} / ${total}`;$('try').disabled=!ready();}
 let workshop = null;
+let musicMuted = false;
 function showMechanism(on) {
   $('repair-task').hidden = on;
   $('music-workshop').hidden = !on;
-  $('music-switch').hidden = current !== 'music';
+  $('music-switch').hidden = current !== 'music' || (on && !completed.has('music'));
   $('music-switch').textContent = on ? '回到齿轮维修台' : '查看手摇机芯';
   if (on && !workshop) workshop = openWorkshop({
     strike: pitch => { if (sound && context) pluck(context,context.destination,pitch); },
     enableSound: () => { if (!sound) $('sound').click(); },
+    startCranking: () => { if (!sound && !musicMuted) $('sound').click(); },
     repaired: () => completed.has('music'),
     repair: () => showMechanism(false)
   });
   workshop?.show(on);
   if (on) {
+    $('job-title').textContent='手摇八音盒';
     $('progress').textContent = completed.has('music') ? '已修好' : '手试机芯';
-  } else update();
+  } else { $('job-title').textContent=jobs[current].name; update(); }
 }
 $('music-switch').addEventListener('click', () => showMechanism($('music-workshop').hidden));
 function load(id){current=id;drag=null;bench.classList.remove('complete');document.querySelectorAll('[data-job]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.job===id));$('job-title').textContent=jobs[id].name;$('job-number').textContent=jobs[id].number;$('try').textContent=jobs[id].try;$('try').disabled=true;$('feedback').classList.remove('completion');feedback(completed.has(id)?'这件已经修好过了。想再动手试一次也可以。':'先看看它哪里松了。');({lamp:renderLamp,music:renderMusic,star:renderStar}[id])();showMechanism(id==='music');}
@@ -102,7 +105,7 @@ function endDrag(e){if(!drag)return;const d=drag;drag=null;$('wire-preview')?.re
 bench.addEventListener('pointerup',endDrag);bench.addEventListener('pointercancel',()=>{if(drag?.kind==='gear'){drag.button.classList.remove('dragging');const i=drag.index,coords=[[455,310,56],[182,304,70],[318,309,86]][i];drag.button.style.left=`${(coords[0]-coords[2]/2)/640*100}%`;drag.button.style.top=`${(coords[1]-coords[2]/2)/360*100}%`;}drag=null;$('wire-preview')?.remove();});
 function initSound(){if(!context)context=new(window.AudioContext||window.webkitAudioContext)();context.resume().catch(()=>{});}
 function tick(f,delay=0){if(!sound||!context)return;const osc=context.createOscillator(),g=context.createGain(),t=context.currentTime+delay;osc.type='sine';osc.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.055,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+.6);osc.connect(g);g.connect(context.destination);osc.start(t);osc.stop(t+.65);}
-$('sound').addEventListener('click',()=>{sound=!sound;if(sound){try{initSound();}catch{sound=false;feedback('这台设备暂时没能播放声音，修理仍然可以继续。');}}$('sound').textContent=sound?'声音：开':'声音：关';$('sound').setAttribute('aria-pressed',sound);if(!sound)context?.suspend();});
+$('sound').addEventListener('click',()=>{sound=!sound;if(sound){try{initSound();}catch{sound=false;feedback('这台设备暂时没能播放声音，修理仍然可以继续。');}}$('sound').textContent=sound?'声音：开':'声音：关';$('sound').setAttribute('aria-pressed',sound);musicMuted=!sound;if(!sound)context?.suspend();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden) context?.suspend();else if(sound) context?.resume().catch(()=>{});});
 addEventListener('pagehide',()=>context?.suspend());
 function fromHash(){ const id=location.hash.slice(1); load(Object.hasOwn(jobs,id)?id:'lamp'); }

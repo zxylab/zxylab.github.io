@@ -1,6 +1,7 @@
 // Run next to browser.cjs against a local static copy of the site.
 const {chromium} = require('playwright');
 const assert = require('node:assert/strict');
+const path = require('node:path');
 const base = process.env.BASE_URL || 'http://127.0.0.1:8765';
 (async()=>{
   const browser=await chromium.launch({headless:true,channel:process.env.PLAYWRIGHT_CHANNEL || undefined});
@@ -14,6 +15,7 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8765';
     await home.click();
     await page.getByRole('link',{name:'← 回到首页'}).click();
     await page.getByRole('link',{name:'去逛逛'}).click();
+    await page.locator('.map img').evaluate(img=>img.decode());
     const places=page.locator('.map a');
     assert.equal(await places.count(),4);
     for(const width of [320,390,1200]) {
@@ -33,6 +35,7 @@ const base = process.env.BASE_URL || 'http://127.0.0.1:8765';
     }
     await page.goto(base+'/repair/#music');
     await page.locator('#music-stage.has-model').waitFor({timeout:45000});
+    if(process.env.SCREENSHOT_DIR) await page.locator('#music-stage').screenshot({path:path.join(process.env.SCREENSHOT_DIR,'mechanism.png')});
     const track=page.getByRole('slider',{name:'第1拍音高',exact:true});
     await track.focus(); await page.keyboard.press('End');
     assert.equal(await track.getAttribute('aria-valuetext'),'C6');
