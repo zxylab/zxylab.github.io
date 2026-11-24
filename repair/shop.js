@@ -1,9 +1,10 @@
-'use strict';
+import { openWorkshop } from './music-workshop.js';
+import { pluck } from './music-state.js';
 // 三件物品各有自己的机关；鼠标拖动和点选操作同时支持。
 const $=id=>document.getElementById(id), bench=$('workbench');
 const key='zxylab-repair-v1';let completed=new Set();
 try{const saved=JSON.parse(localStorage.getItem(key)||'[]');if(Array.isArray(saved))completed=new Set(saved.filter(x=>['lamp','music','star'].includes(x)));}catch{}
-let current='lamp',puzzle=null,sound=false,context=null,playing=null,drag=null;
+let current='lamp',puzzle=null,sound=false,context=null,drag=null;
 const jobs={lamp:{name:'不亮的小灯',number:'01 / 03',try:'试着开灯'},music:{name:'停下的八音盒',number:'02 / 03',try:'听听看'},star:{name:'散开的星星',number:'03 / 03',try:'把星星挂起来'}};
 const icons={};document.querySelectorAll('[data-job]').forEach(b=>icons[b.dataset.job]=b.querySelector('svg').outerHTML);
 const defs=`<defs><linearGradient id="wood" x2=".2" y2="1"><stop stop-color="#c5a16d"/><stop offset="1" stop-color="#a87b4f"/></linearGradient><linearGradient id="metal" x2="1" y2="1"><stop stop-color="#e1c98d"/><stop offset=".5" stop-color="#b69355"/><stop offset="1" stop-color="#8b6d3a"/></linearGradient><radialGradient id="shade"><stop stop-color="#edd19a"/><stop offset="1" stop-color="#b79963"/></radialGradient><filter id="shadow" x="-50%" y="-50%" width="200%" height="200%"><feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#74512a" flood-opacity=".18"/></filter></defs>`;
@@ -59,14 +60,38 @@ function renderStar(){
 }
 function ready(){return current==='lamp'?puzzle.screws.every(Boolean)&&puzzle.wires.every(Boolean):current==='music'?puzzle.placed.every(Boolean)&&puzzle.wound===3:puzzle.angles.every(a=>a===0);}
 function update(){let n,total;if(current==='lamp'){n=puzzle.screws.filter(Boolean).length+puzzle.wires.filter(Boolean).length;total=4;}else if(current==='music'){n=puzzle.placed.filter(Boolean).length+puzzle.wound;total=6;}else{n=puzzle.angles.filter(a=>a===0).length;total=5;}$('progress').textContent=`${n} / ${total}`;$('try').disabled=!ready();}
-function load(id){stopSound();current=id;drag=null;bench.classList.remove('complete');document.querySelectorAll('[data-job]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.job===id));$('job-title').textContent=jobs[id].name;$('job-number').textContent=jobs[id].number;$('try').textContent=jobs[id].try;$('try').disabled=true;$('feedback').classList.remove('completion');feedback(completed.has(id)?'这件已经修好过了。想再动手试一次也可以。':'先看看它哪里松了。');({lamp:renderLamp,music:renderMusic,star:renderStar}[id])();update();}
+let workshop = null;
+let musicMuted = false;
+function showMechanism(on) {
+  $('repair-task').hidden = on;
+  $('music-workshop').hidden = !on;
+  $('music-switch').hidden = current !== 'music' || (on && !completed.has('music'));
+  $('music-switch').textContent = on ? '回到齿轮维修台' : '查看手摇机芯';
+  if (on && !workshop) workshop = openWorkshop({
+    strike: pitch => { if (sound && context) pluck(context,context.destination,pitch); },
+    enableSound: () => { if (!sound) $('sound').click(); },
+    startCranking: () => { if (!sound && !musicMuted) $('sound').click(); },
+    repaired: () => completed.has('music'),
+    repair: () => showMechanism(false)
+  });
+  workshop?.show(on);
+  if (on) {
+    $('job-title').textContent='手摇八音盒';
+    $('progress').textContent = completed.has('music') ? '已修好' : '手试机芯';
+  } else { $('job-title').textContent=jobs[current].name; update(); }
+}
+$('music-switch').addEventListener('click', () => showMechanism($('music-workshop').hidden));
+function load(id){current=id;drag=null;bench.classList.remove('complete');document.querySelectorAll('[data-job]').forEach(b=>b.setAttribute('aria-pressed',b.dataset.job===id));$('job-title').textContent=jobs[id].name;$('job-number').textContent=jobs[id].number;$('try').textContent=jobs[id].try;$('try').disabled=true;$('feedback').classList.remove('completion');feedback(completed.has(id)?'这件已经修好过了。想再动手试一次也可以。':'先看看它哪里松了。');({lamp:renderLamp,music:renderMusic,star:renderStar}[id])();showMechanism(id==='music');}
 function success(){if(!ready())return;completed.add(current);bench.classList.add('complete');$('try').disabled=true;$('try').textContent='修好了 ✓';$('feedback').classList.add('completion');
   if(current==='lamp'){$('bulb').setAttribute('fill','#ffe18a');feedback('亮了。又有一盏灯，可以陪人读书。');}
-  if(current==='music'){feedback('旋律又接着走了。打开声音，可以听到这只八音盒。');if(!matchMedia('(prefers-reduced-motion: reduce)').matches)bench.querySelectorAll('.gear svg').forEach((g,i)=>{g.animate([{transform:'rotate(0deg)'},{transform:`rotate(${i%2?-360:360}deg)`}],{duration:9000,iterations:Infinity});});playMusic();}
+  if(current==='music') {
+    $('music-message').textContent='齿轮装好了。可以把八音盒带回小家。';
+    showMechanism(true);
+  }
   if(current==='star'){$('star-sparkles').setAttribute('opacity','1');feedback('星星完整了。今晚可以挂在窗边。');[523.25,659.25,783.99].forEach((f,i)=>tick(f,i*.16));}
   save();
 }
-$('try').addEventListener('click',success);$('again').addEventListener('click',()=>load(current));document.querySelectorAll('[data-job]').forEach(b=>b.addEventListener('click',()=>load(b.dataset.job)));
+$('try').addEventListener('click',success);$('again').addEventListener('click',()=>{load(current);if(current==='music')showMechanism(false);});document.querySelectorAll('[data-job]').forEach(b=>b.addEventListener('click',()=>{history.replaceState(null,'','#'+b.dataset.job);load(b.dataset.job);}));
 bench.addEventListener('pointermove',e=>{if(!drag)return;if(Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<5)return;drag.moved=true;
   const rect=bench.getBoundingClientRect();if(drag.kind==='gear'){const b=drag.button;b.classList.add('dragging');b.style.left=`${(e.clientX-rect.left)/rect.width*100-parseFloat(b.style.width)/2}%`;b.style.top=`${(e.clientY-rect.top)/rect.height*100-parseFloat(b.style.height)/2}%`;}
   else{const y=150+drag.color*65;const x2=(e.clientX-rect.left)/rect.width*640,y2=(e.clientY-rect.top)/rect.height*360;let preview=$('wire-preview');if(!preview){$('wire-layer').insertAdjacentHTML('beforeend','<path id="wire-preview" class="wire-line"/>');preview=$('wire-preview');}preview.setAttribute('d',`M135 ${y}Q${(135+x2)/2} ${y+35} ${x2} ${y2}`);preview.setAttribute('stroke',drag.color?'#c49459':'#6f969a');}
@@ -80,7 +105,9 @@ function endDrag(e){if(!drag)return;const d=drag;drag=null;$('wire-preview')?.re
 bench.addEventListener('pointerup',endDrag);bench.addEventListener('pointercancel',()=>{if(drag?.kind==='gear'){drag.button.classList.remove('dragging');const i=drag.index,coords=[[455,310,56],[182,304,70],[318,309,86]][i];drag.button.style.left=`${(coords[0]-coords[2]/2)/640*100}%`;drag.button.style.top=`${(coords[1]-coords[2]/2)/360*100}%`;}drag=null;$('wire-preview')?.remove();});
 function initSound(){if(!context)context=new(window.AudioContext||window.webkitAudioContext)();context.resume().catch(()=>{});}
 function tick(f,delay=0){if(!sound||!context)return;const osc=context.createOscillator(),g=context.createGain(),t=context.currentTime+delay;osc.type='sine';osc.frequency.value=f;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.055,t+.015);g.gain.exponentialRampToValueAtTime(.0001,t+.6);osc.connect(g);g.connect(context.destination);osc.start(t);osc.stop(t+.65);}
-function stopSound(){clearInterval(playing);playing=null;}
-function playMusic(){stopSound();if(!sound||current!=='music'||!bench.classList.contains('complete')||document.hidden)return;const tune=[523.25,659.25,783.99,659.25,587.33,698.46,880,698.46];let i=0;tick(tune[i++]);playing=setInterval(()=>tick(tune[i++%tune.length]),450);}
-$('sound').addEventListener('click',()=>{sound=!sound;if(sound){try{initSound();}catch{sound=false;feedback('这台设备暂时没能播放声音，修理仍然可以继续。');}}$('sound').textContent=sound?'声音：开':'声音：关';$('sound').setAttribute('aria-pressed',sound);playMusic();});
-document.addEventListener('visibilitychange',()=>{if(document.hidden)stopSound();else playMusic();});addEventListener('pagehide',()=>{stopSound();context?.suspend();});collection();load('lamp');
+$('sound').addEventListener('click',()=>{sound=!sound;if(sound){try{initSound();}catch{sound=false;feedback('这台设备暂时没能播放声音，修理仍然可以继续。');}}$('sound').textContent=sound?'声音：开':'声音：关';$('sound').setAttribute('aria-pressed',sound);musicMuted=!sound;if(!sound)context?.suspend();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden) context?.suspend();else if(sound) context?.resume().catch(()=>{});});
+addEventListener('pagehide',()=>context?.suspend());
+function fromHash(){ const id=location.hash.slice(1); load(Object.hasOwn(jobs,id)?id:'lamp'); }
+addEventListener('hashchange',fromHash);
+collection();fromHash();

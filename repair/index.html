@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#efe8dc"><meta name="description" content="小小修理铺。把不亮的灯、停下的八音盒和散开的星星，慢慢修好。"><title>小小修理铺 · 一小块空地</title><link rel="stylesheet" href="style.css"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23efe8dc'/%3E%3Cpath d='M23 5a8 8 0 0 0-10 11l-8 8 4 4 8-8A8 8 0 0 0 28 10l-6 6-6-6Z' fill='%23ab7951'/%3E%3C/svg%3E"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#efe8dc"><meta name="description" content="小小修理铺。把不亮的灯、停下的八音盒和散开的星星，慢慢修好。"><title>小小修理铺 · 一小块空地</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="music.css"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23efe8dc'/%3E%3Cpath d='M23 5a8 8 0 0 0-10 11l-8 8 4 4 8-8A8 8 0 0 0 28 10l-6 6-6-6Z' fill='%23ab7951'/%3E%3C/svg%3E"></head>
 <body>
-  <header><a href="/">← 回到空地</a><nav aria-label="其他地方"><a href="/home/">去小家坐坐 ↗</a><button id="sound" type="button" aria-pressed="false">声音：关</button></nav></header>
+  <header><a class="back" href="/map/">← 回到地图</a><nav aria-label="其他地方"><a href="/home/">去小家坐坐 ↗</a><button id="sound" type="button" aria-pressed="false">声音：关</button></nav></header>
   <main>
     <section class="heading"><div><p class="eyebrow">LITTLE THINGS, SECOND CHANCES</p><h1>小小修理铺。</h1></div><p>有些东西还可以再用。<br>给它一点时间，也给自己一点。</p></section>
     <div class="shop">
@@ -12,13 +12,34 @@
         <button type="button" data-job="star"><svg viewBox="0 0 80 80" aria-hidden="true"><ellipse cx="40" cy="68" rx="24" ry="4" fill="#d7cab4"/><path d="m40 10 8 18 21 3-15 15 4 22-18-10-18 10 4-22-15-15 21-3Z" fill="#d6b771" stroke="#a48649" stroke-width="1.5"/><path d="m40 10-1 29 15 7M11 31l28 8-17 29m17-29 19 29" stroke="#f3e7c6" stroke-width="2" fill="none"/></svg><span><strong>散开的星星</strong><small>把夜晚拼完整</small></span><i class="done" hidden>✓</i></button>
       </nav><p class="shelf-note">不用赶工。<br>修好了，它就多一个明天。</p></aside>
       <section class="work-area" aria-labelledby="job-title"><div class="work-heading"><span id="job-number">01 / 03</span><h2 id="job-title">不亮的小灯</h2><span id="progress">0 / 4</span></div>
+        <div id="music-workshop" hidden>
+          <div id="music-stage" class="music-stage">
+            <canvas id="music-flat" aria-label="手摇八音盒机芯示意图"></canvas>
+            <canvas id="music-three" aria-label="开盖木制八音盒，带凸钉滚筒、音梳和曲柄"></canvas>
+          </div>
+          <div class="music-controls">
+            <p class="crank-tip">拖动手柄，或左右划动机芯。</p>
+            <div class="music-buttons"><button type="button" class="primary" id="listen-turn">试听一圈</button><button type="button" id="step-turn">转一拍</button></div>
+            <div class="roll-heading"><h3>滚筒上的音钉</h3><span>一圈八拍</span></div>
+            <p id="roll-hint">上下移动每一列的音钉，就能改变那一拍的音高。键盘可用 ↑ ↓ 调音。</p>
+            <div class="roll-grid">
+              <div class="pitch-labels" aria-hidden="true"><span>C6</span><span>B5</span><span>A5</span><span>G5</span><span>F5</span><span>E5</span><span>D5</span><span>C5</span></div>
+              <div id="note-roll" role="group" aria-label="八拍音钉" aria-describedby="roll-hint"></div>
+              <div class="beat-labels" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span></div>
+            </div>
+            <div class="pack-row"><p id="music-message" role="status"></p><button type="button" id="take-home">装好传动齿轮</button></div>
+          </div>
+        </div>
+        <div id="repair-task">
         <div id="workbench" class="workbench"></div>
         <div class="instructions"><p id="instruction" aria-live="polite"></p><p id="feedback" class="feedback" role="status" aria-live="polite">先看看它哪里松了。</p></div>
         <div class="work-actions"><button id="try" class="primary" type="button" disabled>试着开灯</button><button id="again" type="button">重新修这件</button></div>
+        </div>
+        <button type="button" id="music-switch" hidden>查看机芯</button>
       </section>
     </div>
     <section class="collection"><div><p class="eyebrow">修好的小东西</p><p id="collection-note">架子还空着，慢慢来。</p></div><div id="repaired" class="repaired"></div></section>
   </main>
   <footer><span>把小小的东西，认真修好。</span><a href="/home/">收工了，回小家 ↗</a></footer>
-  <noscript><p>启用 JavaScript，就可以动手修理这些小东西。</p></noscript><script src="shop.js" defer></script>
+  <noscript><p>启用 JavaScript，就可以动手修理这些小东西。</p></noscript><script type="module" src="shop.js"></script>
 </body></html>

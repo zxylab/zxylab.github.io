@@ -1,0 +1,30 @@
+#music-workshop[hidden], #repair-task[hidden], #music-switch[hidden] { display:none }
+.music-stage { position:relative; height:clamp(230px,34vw,375px); background:radial-gradient(ellipse at 49% 40%,#fff5df,#e8d9c1); cursor:grab; touch-action:none }
+.music-stage:active { cursor:grabbing }
+.music-stage canvas { position:absolute; width:100%; height:100%; display:block }
+#music-three { opacity:0; pointer-events:none }
+.has-model #music-three { opacity:1 }
+.has-model #music-flat { visibility:hidden }
+.music-controls { padding:10px clamp(16px,4vw,32px) 12px }
+.music-buttons,.pack-row,.roll-heading { display:flex; align-items:center; gap:8px; flex-wrap:wrap }
+.music-buttons { justify-content:center }
+.crank-tip,.music-controls #roll-hint { font-size:13px; color:#665b4e; line-height:1.65; margin:0 0 9px }
+.crank-tip { text-align:center }
+.roll-heading { justify-content:space-between; margin-top:19px; border-top:1px solid #dfd2bd; padding-top:16px }
+.roll-heading h3 { font-size:17px; font-weight:550; margin:0 }
+.roll-heading span,.pack-row p { font-size:12px; color:#685c4a }
+.music-controls #roll-hint { margin:6px 0 12px }
+.roll-grid { display:grid; grid-template-columns:23px 1fr; gap:3px 6px }
+#note-roll,.beat-labels { display:grid; grid-template-columns:repeat(8, minmax(0,1fr)) }
+.pitch-labels { display:grid; grid-template-rows:repeat(8,1fr); color:#675f52 }
+.pitch-labels span,.beat-labels span { display:grid;place-items:center;font:11px ui-monospace,monospace }
+#note-roll { height:152px; border:1px solid #b8a88b; background:#e9dfcd; border-radius:7px }
+.pin-track { border:0; border-right:1px solid #cabca6; border-radius:0; padding:0; position:relative; touch-action:none; background:repeating-linear-gradient(to bottom,transparent 0 calc(12.5% - 1px),#c6bba9 calc(12.5% - 1px) 12.5%) }
+.pin-track:last-child { border-right:0 }
+.pin-track:is(:hover,.sounding) { background-color:#f5e5bb }
+.pin-track:focus-visible { z-index:2; outline-offset:-2px }
+.pin { position:absolute; left:50%; top:calc((var(--row) + .5)*12.5%); width:14px; height:14px; border-radius:50%; transform:translate(-50%,-50%); background:radial-gradient(circle at 31% 25%,#fff3ac,#c59b47 50%,#89682c 85%); border:1px solid #816327; box-shadow:1px 2px 2px #5f4c3444 }
+.beat-labels { grid-column:2;color:#6a6255;height:18px }
+.pack-row { justify-content:space-between; min-height:48px }
+.pack-row p { margin:0; flex:1; min-width:5em }
+#music-switch { margin:0 24px 15px; border:0; background:transparent; text-decoration:underline; text-underline-offset:4px; color:#665a4e }
