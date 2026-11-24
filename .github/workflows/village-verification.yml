@@ -28,6 +28,10 @@ jobs:
           mkdir -p "$RUNNER_TEMP/screens"
           SCREENSHOT_DIR="$RUNNER_TEMP/screens" node tests/places.cjs
           node tests/browser.cjs
+          if command -v convert >/dev/null; then
+            convert "$RUNNER_TEMP/screens/mechanism.png" -resize 650x290 -quality 67 /tmp/village-mechanism.jpg
+            echo "Render-JPEG $(base64 -w 0 /tmp/village-mechanism.jpg)"
+          fi
       - uses: actions/upload-artifact@v4
         if: always()
         with:
