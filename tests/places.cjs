@@ -1,0 +1,78 @@
+// Run next to browser.cjs against a local static copy of the site.
+const {chromium} = require('playwright');
+const assert = require('node:assert/strict');
+const base = process.env.BASE_URL || 'http://127.0.0.1:8765';
+(async()=>{
+  const browser=await chromium.launch({headless:true,channel:process.env.PLAYWRIGHT_CHANNEL || undefined});
+  try {
+    const page=await browser.newPage({viewport:{width:1200,height:900}});
+    const errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    await page.goto(base);
+    const home=page.locator('a[href="/tools/"]');
+    assert.equal(await home.count(),1);
+    await home.click();
+    await page.getByRole('link',{name:'← 回到首页'}).click();
+    await page.getByRole('link',{name:'去逛逛'}).click();
+    const places=page.locator('.map a');
+    assert.equal(await places.count(),4);
+    for(const width of [320,390,1200]) {
+      await page.setViewportSize({width,height:850});
+      assert.equal(await page.locator('.map img').evaluate(img=>img.complete && img.naturalWidth>0),true);
+      for(const place of await places.all()){
+        assert.equal(await place.evaluate(a=>{
+          const r=a.getBoundingClientRect(),over=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);
+          return a.contains(over);
+        }),true);
+      }
+    }
+    for(const href of ['/sky/','/radar/','/home/','/repair/']) {
+      await page.locator('.map a[href="'+href+'"]').click();
+      await page.getByRole('link',{name:'← 回到地图'}).click();
+      assert.equal(new URL(page.url()).pathname,'/map/');
+    }
+    await page.goto(base+'/repair/#music');
+    await page.locator('#music-stage.has-model').waitFor({timeout:45000});
+    const track=page.getByRole('slider',{name:'第1拍音高',exact:true});
+    await track.focus(); await page.keyboard.press('End');
+    assert.equal(await track.getAttribute('aria-valuetext'),'C6');
+    await page.locator('#step-turn').click();
+    await page.locator('#listen-turn').click();
+    assert.equal(await page.locator('#sound').getAttribute('aria-pressed'),'true');
+    await page.locator('#listen-turn').click();
+    await page.locator('#take-home').click();
+    for(let i=0;i<3;i++){
+      await page.locator('[data-gear="'+i+'"]').click();
+      await page.locator('[data-slot="'+i+'"]').click();
+    }
+    for(let i=0;i<3;i++) await page.locator('.winding').click();
+    await page.locator('#try').click();
+    await page.getByRole('button',{name:'带回小家'}).click();
+    await page.waitForURL('**/home/#music-box');
+    await page.locator('#window-tune').click();
+    assert.equal(await page.locator('#window-tune').getAttribute('aria-pressed'),'true');
+    await page.reload();
+    assert.equal(await page.locator('#window-tune').isVisible(),true);
+    assert.equal(await page.evaluate(()=>JSON.parse(localStorage.getItem('zxylab-music-box-v1')).pitches[0]),7);
+    await page.locator('.objects summary').click();
+    const object=page.locator('#object-list').getByRole('button',{name:'窗边的八音盒'});
+    await object.click();
+    assert.equal(await page.locator('#object-title').innerText(),'窗边的八音盒');
+    await page.goto(base+'/repair/#music');
+    assert.equal(await track.getAttribute('aria-valuetext'),'C6');
+    assert.equal(await page.locator('#take-home').innerText(),'去窗边听听');
+    await page.getByRole('button',{name:'散开的星星',exact:false}).first().click();
+    assert.equal(await page.locator('#music-workshop').isVisible(),false);
+    assert.deepEqual(errors,[]);
+    console.log('PASS: map labels, up links, playable 3D mechanism, pitch edit, repair, delivery, room object and persistent tune');
+    const flat=await browser.newPage({viewport:{width:360,height:800}});
+    await flat.addInitScript(()=>{
+      const original=HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext=function(type,...args){return type.includes('webgl')?null:original.call(this,type,...args);};
+    });
+    await flat.goto(base+'/repair/#music');
+    await flat.locator('#step-turn').click();
+    assert.equal(await flat.locator('#music-flat').isVisible(),true);
+    console.log('PASS: touch-sized WebGL-free diagram');
+  } finally { await browser.close(); }
+})().catch(e=>{console.error(e);process.exitCode=1;});

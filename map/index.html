@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f3f0e8">
+  <title>空地地图 · 一小块空地</title>
+  <style>
+    * { box-sizing:border-box }
+    body { margin:0; background:#f3f0e8; color:#343b32; font-family:system-ui,-apple-system,"PingFang SC",sans-serif }
+    main { width:min(90vw, max(510px, 78svh), 920px); margin:0 auto; padding-bottom:32px }
+    header { display:flex; align-items:center; justify-content:space-between; margin:0 auto; padding:20px 0 13px }
+    header a { display:inline-flex; min-height:44px; align-items:center; color:#51594e; font-size:14px; text-decoration:none }
+    h1 { margin:0; font-weight:520; font-size:clamp(19px,2.2vw,27px); letter-spacing:.06em }
+    .map { position:relative; overflow:hidden; isolation:isolate; border-radius:18px; box-shadow:0 12px 32px #393b301a }
+    img { display:block; width:100%; height:auto }
+    .place { position:absolute; display:flex; align-items:flex-end; justify-content:center; width:var(--w); height:var(--h); left:var(--x); top:var(--y); transform:translate(-50%,-100%); min-height:44px; text-decoration:none; -webkit-tap-highlight-color:transparent }
+    .place span { white-space:nowrap; color:#302c24; background:#fff7e7f5; border:1px solid #fff9eb; border-radius:20px; box-shadow:0 2px 8px #221a1760; font-family:Georgia,"Songti SC","STSong",serif; font-size:clamp(13px,2vw,18px); padding:5px 12px; transition:transform .18s }
+    .place:hover span,.place:focus-visible span { transform:translateY(-3px); background:#fffbee; outline:2px solid #744f29 }
+    a:focus-visible { outline:3px solid #a8482b; outline-offset:3px; border-radius:5px }
+    @media(max-width:600px){main{width:94vw}header{padding:14px 4px 8px}.map{border-radius:12px}.place span{padding:5px 8px}}
+    @media(prefers-reduced-motion:reduce){.place span{transition:none}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><a href="/">← 回到首页</a><h1>空地地图</h1></header>
+    <nav class="map" aria-label="选择要去的地方">
+      <img src="village.jpg" width="1100" height="1100" alt="暮色里的山坡，一条石子路连着亮灯的小屋、修理铺和山顶的雷达站。">
+      <a class="place" href="/home/" style="--x:27%;--y:68%;--w:42%;--h:29%"><span>一个人的小家</span></a>
+      <a class="place" href="/repair/" style="--x:76%;--y:86%;--w:42%;--h:29%"><span>小小修理铺</span></a>
+      <a class="place" href="/radar/" style="--x:76%;--y:43%;--w:30%;--h:26%"><span>雷达小站</span></a>
+      <a class="place" href="/sky/" style="--x:22%;--y:24%;--w:34%;--h:21%"><span>发会儿呆</span></a>
+    </nav>
+  </main>
+</body>
+</html>

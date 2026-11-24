@@ -1,3 +1,4 @@
+import { readBox } from '../repair/music-state.js';
 import * as THREE from './vendor/three.module.min.js';
 
 // 小公寓使用独立物件建模；摆放、灯光和物件状态都只保存在本机。
@@ -127,6 +128,25 @@ const player=group(shelf,0,1.05,.4);box(player,.58,.12,.70,'#9a744e',0,.06,0,.02
 const potted=item('plant','窗边的植物','叶子有一点渴。浇点水，再换个晒得到光的位置。',.55,2.8,.70,.70,true,'plant');plant(potted,0,0,0,1.28);
 const cat=item('cat','打盹的猫','摸摸它。它可能只翻个身，继续睡。',-.2,2.45,.86,.68,true,'cat');const cushion=cyl(cat,.45,.12,'#b7b094',0,.1);cushion.scale.z=.8;const catBody=ball(cat,.29,'#c89059',0,.33,0,[1.25,.72,.85]);const catHead=ball(cat,.16,'#d0a16e',-.22,.34,.13,[1,.9,.9]);for(const x of [-.30,-.14]){const ear=mesh(cat,new THREE.ConeGeometry(.065,.13,3),mat('#c18754'),x,.48,.10);ear.rotation.z=x<-.2?.25:-.25;}tube(cat,[[.32,.30,0],[.4,.26,.17],[.21,.26,.25],[.06,.27,.22]],.04,'#ba804d');for(const x of [-.27,-.17])tube(cat,[[x-.025,.355,.263],[x,.345,.273],[x+.022,.355,.263]],.006,'#684d37');
 
+// A small playable object sits on the sill; saved furniture positions are independent.
+const windowBox=group(house,-.04,1.17,-3.58);
+windowBox.userData.item='musicbox';
+const boxItem={id:'musicbox',name:'窗边的八音盒',description:'在修理铺装好的木盒子，里面还是你调过的八个音。',group:windowBox,w:.70,d:.4,move:false,flat:true,action:'musicbox'};
+box(windowBox,.88,.06,.51,'#be9565',0,-.046,.01,.02,wood);
+box(windowBox,.65,.15,.36,'#89593d',0,.075,0,.025,wood);
+box(windowBox,.58,.09,.29,'#4b4637',0,.145,0,.012);
+box(windowBox,.64,.30,.034,'#9e724e',0,.285,-.16,.012,wood).rotation.x=-.18;
+const drum=cyl(windowBox,.064,.43,'#c7a059',-.026,.207,-.031);
+drum.rotation.z=Math.PI/2;
+for(let i=0;i<8;i++) box(windowBox,.023,.012,.096,'#cec6af',-.208+i*.052,.192,.071,.003);
+tube(windowBox,[[.23,.203,-.03],[.37,.203,-.03],[.37,.151,.019],[.42,.151,.019]],.014,'#b59150');
+const windowButton=button('窗边的八音盒',()=>show(boxItem,true));
+function updateWindowBox(){
+  windowBox.visible=readBox().home;
+  if(windowBox.visible){items.set('musicbox',boxItem);if(!windowButton.isConnected)$('object-list').append(windowButton);}
+  else{items.delete('musicbox');windowButton.remove();}
+  requestDraw();
+}
 // 环境动画中的雨线和灯光，声音只有用户主动打开才会播放。
 const rain=group(windowGroup,0,1.93,.135);for(let i=0;i<45;i++){const r=box(rain,.009,.12,.005,'#dce8e7',(i*137%250)/100-1.25,(i*79%120)/100-.6,.01);r.rotation.z=-.17;}rain.visible=state.rain;
 const selectionRing=mesh(house,new THREE.RingGeometry(.65,.69,64),new THREE.MeshBasicMaterial({color:'#b88a5d',transparent:true,opacity:.7,side:THREE.DoubleSide,depthWrite:false}),0,.09,0);selectionRing.rotation.x=-Math.PI/2;selectionRing.visible=false;selectionRing.castShadow=false;
@@ -143,9 +163,10 @@ function sync(){
   for(const l of [bedsideLamp,deskLamp]){l.light.intensity=state.lamp?4:0;l.bulb.material=mat(state.lamp?'#ffdda0':'#eee1c3');l.bulb.material.emissive.set(state.lamp?'#e19c40':'#000000');l.bulb.material.emissiveIntensity=state.lamp?.8:0;}
   catBody.rotation.z=state.cat?.1:0;syncAudio();save();requestDraw();
 }
-const actionLabels={curtains:()=>state.curtains?'拉开窗帘':'拉上窗帘',lamp:()=>state.lamp?'关上小灯':'开一盏灯',bed:()=>state.bed?'把被子铺松一点':'整理床铺',wardrobe:()=>state.wardrobe?'关上柜门':'打开衣柜',fridge:()=>state.fridge?'关上冰箱':'打开冰箱',tap:()=>state.tap?'关掉水龙头':'洗洗手',kettle:()=>state.kettle?'水正在烧…':'烧一壶水',record:()=>state.record?'收起这张唱片':'放一张唱片',book:()=>state.book?'合上书':'翻开书',plant:()=> '浇一点水',cat:()=> '摸摸猫'};
+const actionLabels={musicbox:()=> '听窗边的八音盒',curtains:()=>state.curtains?'拉开窗帘':'拉上窗帘',lamp:()=>state.lamp?'关上小灯':'开一盏灯',bed:()=>state.bed?'把被子铺松一点':'整理床铺',wardrobe:()=>state.wardrobe?'关上柜门':'打开衣柜',fridge:()=>state.fridge?'关上冰箱':'打开冰箱',tap:()=>state.tap?'关掉水龙头':'洗洗手',kettle:()=>state.kettle?'水正在烧…':'烧一壶水',record:()=>state.record?'收起这张唱片':'放一张唱片',book:()=>state.book?'合上书':'翻开书',plant:()=> '浇一点水',cat:()=> '摸摸猫'};
 let kettleTimer=null,tapTimer=null;
 function act(action){
+  if(action==='musicbox'){ $('window-tune').click(); return; }
   if(action==='plant'){say('浇好了。叶子也精神了一点。');potted.scale.set(1.025,1.05,1.025);setTimeout(()=>{potted.scale.set(1,1,1);requestDraw();},1300);requestDraw();return;}
   if(action==='kettle'){if(state.kettle)return;state.kettle=true;kettleSteam.visible=true;say('水在慢慢热起来。稍等一会儿。');clearTimeout(kettleTimer);kettleTimer=setTimeout(()=>{state.kettle=false;kettleSteam.visible=false;say('水烧好了。今天也给自己泡杯茶吧。');sync();if(selected)show(selected,false);},6500);}
   else{state[action]=!state[action];const notes={curtains:state.curtains?'窗帘合上了，小屋安静了一点。':'光又落进来了。',lamp:state.lamp?'给自己留了一盏灯。':'灯熄了，窗外还有一点光。',bed:state.bed?'被角掖好了。晚上会睡得舒服一点。':'被子铺得松松的。',wardrobe:state.wardrobe?'衣服和明天要带的东西，都在这里。':'柜门轻轻关上了。',fridge:state.fridge?'还有水果和牛奶。晚饭不用太复杂。':'把新鲜留给明天。',tap:state.tap?'水有一点凉。洗洗手，慢下来。':'水停了。',record:state.record?'唱片转起来了。打开声音，可以听一小段旋律。':'唱片停下来了。',book:state.book?'翻到上次读的那一页。':'书签夹好了，下次再读。',cat:'它翻了个身，继续睡。'};say(notes[action]||'');}
@@ -173,7 +194,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePanel();if(wal
 // 点选射线和地面拖动共用同一组家具，不用不可见热区模拟物件。
 const raycaster=new THREE.Raycaster(),ndc=new THREE.Vector2(),floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),hitFloor=new THREE.Vector3();
 function ray(e){const rect=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-rect.left)/rect.width*2-1,-(e.clientY-rect.top)/rect.height*2+1);raycaster.setFromCamera(ndc,camera);}
-function pick(e){ray(e);for(const hit of raycaster.intersectObjects(house.children,true)){if(hit.object.userData.ignorePick||hit.object===selectionRing)continue;let p=hit.object;while(p&&!p.userData.item)p=p.parent;if(p?.userData.item)return items.get(p.userData.item);}return null;}
+function pick(e){ray(e);for(const hit of raycaster.intersectObjects(house.children,true)){if(hit.object.userData.ignorePick||hit.object===selectionRing)continue;let p=hit.object;while(p&&!p.userData.item)p=p.parent;if(p?.visible && p.userData.item && items.has(p.userData.item))return items.get(p.userData.item);}return null;}
 let drag=null;
 renderer.domElement.addEventListener('pointerdown',e=>{if(e.button!==0)return;const o=pick(e);if(!o){closePanel();return;}show(o,false);if(arranging&&o.move){ray(e);raycaster.ray.intersectPlane(floorPlane,hitFloor);drag={o,x:e.clientX,y:e.clientY,offsetX:hitFloor.x-o.group.position.x,offsetZ:hitFloor.z-o.group.position.z,moved:false};renderer.domElement.setPointerCapture(e.pointerId);renderer.domElement.style.cursor='grabbing';}});
 renderer.domElement.addEventListener('pointermove',e=>{if(drag){if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>4)drag.moved=true;ray(e);if(raycaster.ray.intersectPlane(floorPlane,hitFloor))move(drag.o,hitFloor.x-drag.offsetX,hitFloor.z-drag.offsetZ);return;}if(e.pointerType==='touch')return;const o=pick(e);renderer.domElement.style.cursor=o?(arranging&&o.move?'grab':'pointer'):'default';const label=$('hover-label');label.hidden=!o;if(o){label.textContent=o.name;const r=container.getBoundingClientRect();label.style.left=Math.min(e.clientX-r.left+13,r.width-100)+'px';label.style.top=e.clientY-r.top-30+'px';}});
@@ -199,4 +220,5 @@ new ResizeObserver(resize).observe(container);document.addEventListener('visibil
 // 页面关闭时不留下音频和定时器。
 addEventListener('pagehide',()=>{clearInterval(melodyTimer);clearTimeout(kettleTimer);clearTimeout(tapTimer);audio?.suspend();});
 // 一次性的水流和烧水状态不跨页面延续。
-state.tap=false;state.kettle=false;loading.hidden=true;sync();resize();
+state.tap=false;state.kettle=false;loading.hidden=true;updateWindowBox();sync();resize();
+addEventListener('storage',updateWindowBox);addEventListener('pageshow',updateWindowBox);
